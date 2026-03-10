@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全球汽车轮胎发展历史 | H5展示</title>
+    <style>
+        /* 基础样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 头部样式 */
+        header {
+            background: linear-gradient(135deg, #2c3e50, #4ca1af);
+            color: white;
+            text-align: center;
+            padding: 2rem 1rem;
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* 时间轴容器 */
+        .timeline-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* 时间轴主体 */
+        .timeline {
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        /* 时间轴中心线 */
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: #4ca1af;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+            border-radius: 3px;
+        }
+
+        /* 时间轴条目 */
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+            animation: fadeIn 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        /* 奇数条目（左侧） */
+        .timeline-item:nth-child(odd) {
+            left: 0;
+            animation-delay: calc(0.2s * var(--i));
+        }
+
+        /* 偶数条目（右侧） */
+        .timeline-item:nth-child(even) {
+            left: 50%;
+            animation-delay: calc(0.2s * var(--i));
+        }
+
+        /* 时间轴圆点 */
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background-color: white;
+            border: 4px solid #e74c3c;
+            border-radius: 50%;
+            top: 15px;
+            z-index: 1;
+        }
+
+        .timeline-item:nth-child(odd)::after {
+            right: -17px;
+        }
+
+        .timeline-item:nth-child(even)::after {
+            left: -17px;
+        }
+
+        /* 内容卡片 */
+        .timeline-content {
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+        }
+
+        /* 时间标签 */
+        .timeline-date {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        /* 标题样式 */
+        .timeline-title {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        /* 响应式设计 */
+        @media screen and (max-width: 768px) {
+            .timeline::after {
+                left: 31px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+                left: 0 !important;
+            }
+            
+            .timeline-item::after {
+                left: 15px !important;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 页脚样式 */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background-color: #2c3e50;
+            color: white;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面头部 -->
+    <header>
+        <h1>全球汽车轮胎发展历史</h1>
+        <p>从实心橡胶到智能轮胎，见证百年技术革新</p>
+    </header>
+
+    <!-- 时间轴主体 -->
+    <div class="timeline-container">
+        <div class="timeline">
+            <!-- 1839年：硫化橡胶发明 -->
+            <div class="timeline-item" style="--i: 1">
+                <div class="timeline-content">
+                    <div class="timeline-date">1839年</div>
+                    <h3 class="timeline-title">硫化橡胶技术诞生</h3>
+                    <p>查尔斯·固特异发明硫化橡胶技术，解决了橡胶遇热变软、遇冷变脆的问题，为现代轮胎制造奠定了材料基础。</p>
+                </div>
+            </div>
+
+            <!-- 1845年：第一条充气轮胎 -->
+            <div class="timeline-item" style="--i: 2">
+                <div class="timeline-content">
+                    <div class="timeline-date">1845年</div>
+                    <h3 class="timeline-title">世界第一条充气轮胎</h3>
+                    <p>苏格兰工程师罗伯特·汤姆森发明了充气轮胎，但因成本问题未能普及，直到1888年才被约翰·博伊尔·邓禄普重新发明并商业化。</p>
+                </div>
+            </div>
+
+            <!-- 1888年：邓禄普充气轮胎 -->
+            <div class="timeline-item" style="--i: 3">
+                <div class="timeline-content">
+                    <div class="timeline-date">1888年</div>
+                    <h3 class="timeline-title">邓禄普实用化充气轮胎</h3>
+                    <p>约翰·博伊尔·邓禄普为解决儿子自行车颠簸问题，发明了实用化的充气轮胎，迅速应用于自行车和早期汽车。</p>
+                </div>
+            </div>
+
+            <!-- 1895年：第一条汽车专用轮胎 -->
+            <div class="timeline-item" style="--i: 4">
+                <div class="timeline-content">
+                    <div class="timeline-date">1895年</div>
+                    <h3 class="timeline-title">首款汽车专用轮胎</h3>
+                    <p>米其林兄弟为潘哈德汽车设计了首款汽车专用充气轮胎，首次在巴黎-波尔多汽车比赛中使用，大幅提升了车辆行驶舒适性。</p>
+                </div>
+            </div>
+
+            <!-- 1904年：可拆卸轮胎 -->
+            <div class="timeline-item" style="--i: 5">
+                <div class="timeline-content">
+                    <div class="timeline-date">1904年</div>
+                    <h3 class="timeline-title">可拆卸轮胎问世</h3>
+                    <p>米其林发明可拆卸轮胎，解决了轮胎损坏后需要整体更换的问题，大幅缩短了换胎时间，提升了实用性。</p>
+                </div>
+            </div>
+
+            <!-- 1911年：无内胎轮胎 -->
+            <div class="timeline-item" style="--i: 6">
+                <div class="timeline-content">
+                    <div class="timeline-date">1911年</div>
+                    <h3 class="timeline-title">无内胎轮胎（真空胎）</h3>
+                    <p>菲利普斯轮胎公司发明无内胎轮胎，减少了爆胎风险，提升了安全性，逐渐成为现代汽车轮胎的主流。</p>
+                </div>
+            </div>
+
+            <!-- 1923年：斜交轮胎 -->
+            <div class="timeline-item" style="--i: 7">
+                <div class="timeline-content">
+                    <div class="timeline-date">1923年</div>
+                    <h3 class="timeline-title">斜交轮胎技术成熟</h3>
+                    <p>斜交轮胎（尼龙/人造丝帘线）大规模应用，提升了轮胎的承载能力和耐磨性，成为数十年间的主流轮胎结构。</p>
+                </div>
+            </div>
+
+            <!-- 1946年：子午线轮胎 -->
+            <div class="timeline-item" style="--i: 8">
+                <div class="timeline-content">
+                    <div class="timeline-date">1946年</div>
+                    <h3 class="timeline-title">子午线轮胎发明</h3>
+                    <p>米其林发明子午线轮胎，帘线呈放射状排列，具有低滚动阻力、高耐磨性、抓地力好等优点，至今仍是主流技术。</p>
+                </div>
+            </div>
+
+            <!-- 1960年代：缺气保用轮胎 -->
+            <div class="timeline-item" style="--i: 9">
+                <div class="timeline-content">
+                    <div class="timeline-date">1960年代</div>
+                    <h3 class="timeline-title">缺气保用轮胎（防爆胎）</h3>
+                    <p>倍耐力等厂商研发出缺气保用轮胎，在轮胎失压后仍能以一定速度行驶数十公里，大幅提升行车安全性。</p>
+                </div>
+            </div>
+
+            <!-- 21世纪：智能轮胎 -->
+            <div class="timeline-item" style="--i: 10">
+                <div class="timeline-content">
+                    <div class="timeline-date">21世纪</div>
+                    <h3 class="timeline-title">智能轮胎时代</h3>
+                    <p>配备胎压监测系统（TPMS）、传感器的智能轮胎问世，可实时监测胎压、温度、磨损程度，甚至预测爆胎风险，结合AI技术实现主动安全预警。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <p>© 2025 汽车轮胎发展历史 H5展示 | 基于HTML5 + CSS3开发</p>
+    </footer>
+
+    <!-- 简单的交互脚本 -->
+    <script>
+        // 平滑滚动效果
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // 监听滚动，增强视觉效果
+        window.addEventListener('scroll', function() {
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            timelineItems.forEach(item => {
+                const rect = item.getBoundingClientRect();
+                if (rect.top < window.innerHeight * 0.8) {
+                    item.style.opacity = 1;
+                    item.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        // 页面加载时触发一次滚动检测
+        window.dispatchEvent(new Event('scroll'));
+    </script>
+</body>
+</html>
