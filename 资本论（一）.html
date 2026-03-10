@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>剩余价值：资本循环</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #1a1a2e; 
+            color: #eee;
+            overflow-x: hidden;
+        }
+        #game-container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            min-height: 100vh;
+            position: relative;
+        }
+        .scene { display: none; padding: 20px; }
+        .scene.active { display: block; animation: fadeIn 0.5s; }
+        
+        /* 蒸汽朋克风格UI */
+        .steampunk-panel {
+            background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+            border: 3px solid #8b6914;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 0 20px rgba(139, 105, 20, 0.3);
+            position: relative;
+        }
+        .steampunk-panel::before {
+            content: '⚙';
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #1a1a2e;
+            padding: 0 10px;
+            color: #8b6914;
+            font-size: 24px;
+        }
+        
+        /* 资源显示 */
+        .resources {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .resource-item {
+            background: #0f0f1e;
+            border: 2px solid #4a4a6a;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .resource-label { font-size: 12px; color: #888; }
+        .resource-value { font-size: 24px; color: #ffd700; font-weight: bold; }
+        
+        /* 交互按钮 */
+        .action-btn {
+            background: linear-gradient(180deg, #8b6914 0%, #5a4510 100%);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            border: 2px solid #ffd700;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(139, 105, 20, 0.5);
+        }
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* 工人状态 */
+        .worker-card {
+            background: #0f0f1e;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .worker-energy {
+            width: 100px;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .worker-energy-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #f39c12);
+            transition: width 0.3s;
+        }
+        
+        /* 马克思语录弹窗 */
+        .marx-quote {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #c41e3a;
+            padding: 15px;
+            max-width: 300px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+        .marx-quote.show { display: block; animation: slideIn 0.3s; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        
+        /* 市场波动图表 */
+        .market-chart {
+            height: 150px;
+            background: #0f0f1e;
+            border: 2px solid #4a4a6a;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .chart-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- 主菜单 -->
+        <div id="menu-scene" class="scene active">
+            <div style="text-align: center; padding: 50px 20px;">
+                <h1 style="font-size: 48px; color: #8b6914; text-shadow: 0 0 20px rgba(139,105,20,0.5); margin-bottom: 20px;">
+                    ⚙ 剩余价值：资本循环 ⚙
+                </h1>
+                <p style="color: #888; margin-bottom: 40px;">基于马克思《资本论》第一卷</p>
+                
+                <button class="action-btn" onclick="startGame('capitalist')">💰 扮演资本家</button>
+                <button class="action-btn" onclick="startGame('worker')">🔧 扮演工人</button>
+                <button class="action-btn" onclick="showTutorial()">📖 理论教程</button>
+            </div>
+        </div>
+
+        <!-- 资本家模式 -->
+        <div id="capitalist-scene" class="scene">
+            <div class="steampunk-panel">
+                <h2>🏭 纺织工厂 - <span id="day-display">第1天</span></h2>
+                
+                <div class="resources">
+                    <div class="resource-item">
+                        <div class="resource-label">货币资本 (G)</div>
+                        <div class="resource-value" id="money">1000</div>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-label">生产资料 (Pm)</div>
+                        <div class="resource-value" id="materials">100</div>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-label">劳动力 (A)</div>
+                        <div class="resource-value" id="workers">5</div>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-label">商品 (W')</div>
+                        <div class="resource-value" id="goods">0</div>
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0;">
+                    <h3 style="color: #8b6914; margin-bottom: 10px;">⚙️ 资本循环: G — W...P...W' — G'</h3>
+                    <div style="background: #0f0f1e; padding: 15px; border-radius: 5px; font-family: monospace;">
+                        <div id="circuit-stage" style="color: #ffd700;">阶段: 货币资本 → 生产资本</div>
+                        <div style="margin-top: 10px; font-size: 14px; color: #888;">
+                            剩余价值率: <span id="surplus-rate" style="color: #e74c3c;">0%</span> | 
+                            利润率: <span id="profit-rate" style="color: #2ecc71;">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="market-chart" id="market-chart">
+                    <canvas id="priceCanvas" width="760" height="150"></canvas>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                    <button class="action-btn" onclick="buyMaterials()">购买原材料 (-$100)</button>
+                    <button class="action-btn" onclick="hireWorker()">雇佣工人 (-$50)</button>
+                    <button class="action-btn" onclick="extendWorkday()">延长工时 (+剩余价值)</button>
+                    <button class="action-btn" onclick="improveTech()">技术改进 (-$500)</button>
+                    <button class="action-btn" onclick="sellGoods()">出售商品</button>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h3 style="color: #8b6914;">👥 工人状态</h3>
+                    <div id="workers-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工人模式 -->
+        <div id="worker-scene" class="scene">
+            <div class="steampunk-panel">
+                <h2>🔧 工人视角 - <span id="worker-day">第1天</span></h2>
+                
+                <div class="resources">
+                    <div class="resource-item">
+                        <div class="resource-label">生存资金</div>
+                        <div class="resource-value" id="worker-money">20</div>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-label">体力值</div>
+                        <div class="resource-value" id="worker-energy" style="color: #e74c3c;">100</div>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-label">必要劳动时间</div>
+                        <div class="resource-value" id="necessary-time">6h</div>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-label">剩余劳动时间</div>
+                        <div class="resource-value" id="surplus-time" style="color: #e74c3c;">6h</div>
+                    </div>
+                </div>
+
+                <div style="background: #0f0f1e; padding: 20px; margin: 20px 0; border-radius: 5px;">
+                    <h3 style="color: #8b6914; margin-bottom: 15px;">⏰ 工作日构成</h3>
+                    <div style="display: flex; height: 40px; border-radius: 5px; overflow: hidden;">
+                        <div id="necessary-labor" style="width: 50%; background: #2ecc71; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                            必要劳动 (再生产劳动力价值)
+                        </div>
+                        <div id="surplus-labor" style="width: 50%; background: #e74c3c; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                            剩余劳动 (被剥削部分)
+                        </div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 14px; color: #888;">
+                        你工作12小时，其中6小时创造的价值等于你的工资，另外6小时创造的剩余价值被资本家占有
+                    </p>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                    <button class="action-btn" onclick="workHour()">工作1小时</button>
+                    <button class="action-btn" onclick="rest()">休息恢复</button>
+                    <button class="action-btn" onclick="studyTheory()">学习理论 (觉醒度↑)</button>
+                    <button class="action-btn" onclick="organize()">组织工会 (风险↑)</button>
+                    <button class="action-btn" onclick="strike()">罢工争取权益</button>
+                </div>
+
+                <div id="worker-events" style="margin-top: 20px; padding: 15px; background: #0f0f1e; border-radius: 5px; min-height: 100px;">
+                    <p style="color: #666;">事件日志...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 理论教程 -->
+        <div id="tutorial-scene" class="scene">
+            <div class="steampunk-panel">
+                <h2>📚 《资本论》核心概念</h2>
+                <div style="max-height: 60vh; overflow-y: auto;">
+                    <div style="margin: 20px 0; padding: 15px; background: #0f0f1e; border-left: 4px solid #8b6914;">
+                        <h3 style="color: #ffd700;">商品二因素</h3>
+                        <p>使用价值：物品满足人们某种需要的效用</p>
+                        <p>价值：凝结在商品中的无差别人类劳动</p>
+                    </div>
+                    <div style="margin: 20px 0; padding: 15px; background: #0f0f1e; border-left: 4px solid #8b6914;">
+                        <h3 style="color: #ffd700;">劳动二重性</h3>
+                        <p>具体劳动 → 创造使用价值</p>
+                        <p>抽象劳动 → 形成价值实体</p>
+                    </div>
+                    <div style="margin: 20px 0; padding: 15px; background: #0f0f1e; border-left: 4px solid #c41e3a;">
+                        <h3 style="color: #ffd700;">剩余价值</h3>
+                        <p>由雇佣工人创造的被资本家无偿占有的超过劳动力价值的价值</p>
+                        <p>公式：m = 剩余劳动时间 / 必要劳动时间</p>
+                    </div>
+                    <div style="margin: 20px 0; padding: 15px; background: #0f0f1e; border-left: 4px solid #c41e3a;">
+                        <h3 style="color: #ffd700;">资本循环公式</h3>
+                        <p>G — W (Pm, A)... P... W' — G'</p>
+                        <p>货币资本 → 生产资本 → 商品资本 → 增值的货币资本</p>
+                    </div>
+                </div>
+                <button class="action-btn" onclick="showScene('menu-scene')" style="margin-top: 20px;">返回菜单</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 马克思语录 -->
+    <div id="marx-quote" class="marx-quote">
+        <p style="font-style: italic; margin-bottom: 10px;" id="quote-text"></p>
+        <p style="text-align: right; color: #c41e3a; font-size: 12px;">—— 马克思</p>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            mode: null,
+            day: 1,
+            // 资本家数据
+            capitalist: {
+                money: 1000,
+                materials: 100,
+                workers: [],
+                goods: 0,
+                technology: 1,
+                totalSurplusValue: 0,
+                circuitStage: 0 // 0:G, 1:W, 2:P, 3:W', 4:G'
+            },
+            // 工人数据
+            worker: {
+                money: 20,
+                energy: 100,
+                consciousness: 0, // 阶级意识
+                workHours: 0,
+                dailyWage: 20,
+                necessaryLabor: 6, // 必要劳动时间
+                surplusLabor: 6,   // 剩余劳动时间
+                history: []
+            },
+            // 市场数据
+            market: {
+                prices: [],
+                maxPoints: 50
+            }
+        };
+
+        // 马克思语录库
+        const marxQuotes = [
+            "资本来到世间，从头到脚，每个毛孔都滴着血和肮脏的东西。",
+            "剩余价值是资本主义生产的直接目的和决定动机。",
+            "工人出卖的是劳动力，而不是劳动。",
+            "商品拜物教：人与人的社会关系表现为物与物的关系。",
+            "资本主义积累的一般规律：一极是财富的积累，另一极是贫困的积累。",
+            "剥夺者就要被剥夺了。",
+            "自由、平等、所有权和边沁——这是流通领域的理想表现。"
+        ];
+
+        // 初始化
+        function init() {
+            updateMarketChart();
+            setInterval(() => {
+                if (gameState.mode === 'capitalist') {
+                    fluctuateMarket();
+                }
+            }, 3000);
+        }
+
+        // 场景切换
+        function showScene(sceneId) {
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+            document.getElementById(sceneId).classList.add('active');
+        }
+
+        // 开始游戏
+        function startGame(mode) {
+            gameState.mode = mode;
+            if (mode === 'capitalist') {
+                initCapitalist();
+                showScene('capitalist-scene');
+            } else {
+                initWorker();
+                showScene('worker-scene');
+            }
+            showRandomQuote();
+        }
+
+        // 资本家模式初始化
+        function initCapitalist() {
+            gameState.capitalist.workers = [
+                { name: '工人甲', energy: 100, skill: 1 },
+                { name: '工人乙', energy: 100, skill: 1 },
+                { name: '工人丙', energy: 100, skill: 1 },
+                { name: '工人丁', energy: 100, skill: 1 },
+                { name: '工人戊', energy: 100, skill: 1 }
+            ];
+            updateCapitalistUI();
+        }
+
+        // 工人模式初始化
+        function initWorker() {
+            updateWorkerUI();
+            addWorkerEvent("新的一天开始了。你必须工作12小时来赚取生存所需的工资。");
+        }
+
+        // 资本家操作
+        function buyMaterials() {
+            if (gameState.capitalist.money >= 100) {
+                gameState.capitalist.money -= 100;
+                gameState.capitalist.materials += 50;
+                updateCapitalistUI();
+                showQuote("生产资料即原料、辅助材料、劳动资料。");
+            }
+        }
+
+        function hireWorker() {
+            if (gameState.capitalist.money >= 50) {
+                gameState.capitalist.money -= 50;
+                const names = ['张三', '李四', '王五', '赵六', '孙七'];
+                const name = names[Math.floor(Math.random() * names.length)] + gameState.capitalist.workers.length;
+                gameState.capitalist.workers.push({
+                    name: name,
+                    energy: 100,
+                    skill: 0.8 + Math.random() * 0.4
+                });
+                updateCapitalistUI();
+                showQuote("劳动力成为商品是货币转化为资本的前提。");
+            }
+        }
+
+        function extendWorkday() {
+            // 绝对剩余价值生产
+            gameState.capitalist.workers.forEach(w => {
+                w.energy -= 20;
+                const surplus = 10 * w.skill * gameState.capitalist.technology;
+                gameState.capitalist.totalSurplusValue += surplus;
+                gameState.capitalist.goods += surplus;
+            });
+            updateCapitalistUI();
+            showQuote("通过延长工作日生产的剩余价值，叫做绝对剩余价值。");
+        }
+
+        function improveTech() {
+            if (gameState.capitalist.money >= 500) {
+                gameState.capitalist.money -= 500;
+                gameState.capitalist.technology += 0.5;
+                updateCapitalistUI();
+                showQuote("相对剩余价值生产：通过提高生产力缩短必要劳动时间。");
+            }
+        }
+
+        function sellGoods() {
+            if (gameState.capitalist.goods > 0) {
+                const revenue = gameState.capitalist.goods * (2 + Math.random());
+                gameState.capitalist.money += Math.floor(revenue);
+                gameState.capitalist.goods = 0;
+                gameState.day++;
+                document.getElementById('day-display').textContent = `第${gameState.day}天`;
+                updateCapitalistUI();
+                showQuote("W' — G'：商品资本转化为货币资本，实现价值增殖。");
+            }
+        }
+
+        // 工人操作
+        function workHour() {
+            if (gameState.worker.energy > 0) {
+                gameState.worker.workHours++;
+                gameState.worker.energy -= 10;
+                
+                // 计算劳动价值
+                if (gameState.worker.workHours <= gameState.worker.necessaryLabor) {
+                    addWorkerEvent(`第${gameState.worker.workHours}小时：必要劳动，再生产劳动力价值。`);
+                } else {
+                    const surplus = gameState.worker.workHours - gameState.worker.necessaryLabor;
+                    addWorkerEvent(`第${gameState.worker.workHours}小时：剩余劳动，为资本家创造剩余价值。`);
+                }
+
+                if (gameState.worker.workHours >= 12) {
+                    gameState.worker.money += gameState.worker.dailyWage;
+                    addWorkerEvent(`工作日结束。获得工资 $${gameState.worker.dailyWage}。`);
+                    gameState.worker.workHours = 0;
+                    gameState.day++;
+                    document.getElementById('worker-day').textContent = `第${gameState.day}天`;
+                }
+                
+                updateWorkerUI();
+            }
+        }
+
+        function rest() {
+            gameState.worker.energy = Math.min(100, gameState.worker.energy + 30);
+            gameState.worker.workHours = 0;
+            addWorkerEvent("你休息了一段时间，恢复了体力。");
+            updateWorkerUI();
+        }
+
+        function studyTheory() {
+            gameState.worker.consciousness += 10;
+            addWorkerEvent("你阅读了《资本论》，阶级意识提升了！你明白了剩余价值的来源。");
+            updateWorkerUI();
+            showQuote("理论一经掌握群众，也会变成物质力量。");
+        }
+
+        function organize() {
+            if (gameState.worker.consciousness >= 30) {
+                addWorkerEvent("你开始秘密组织工会，联系其他工人...");
+                showQuote("全世界无产者，联合起来！");
+            } else {
+                addWorkerEvent("你的阶级意识还不够，需要先学习理论。");
+            }
+        }
+
+        function strike() {
+            if (gameState.worker.consciousness >= 50) {
+                addWorkerEvent("⚠️ 罢工开始！要求：8小时工作制！提高工资！");
+                showQuote("罢工是工人的军事学校。");
+            } else {
+                addWorkerEvent("组织度不够，罢工难以成功。");
+            }
+        }
+
+        // UI更新
+        function updateCapitalistUI() {
+            document.getElementById('money').textContent = Math.floor(gameState.capitalist.money);
+            document.getElementById('materials').textContent = gameState.capitalist.materials;
+            document.getElementById('workers').textContent = gameState.capitalist.workers.length;
+            document.getElementById('goods').textContent = Math.floor(gameState.capitalist.goods);
+            
+            // 计算比率
+            const totalWages = gameState.capitalist.workers.length * 10;
+            const surplusRate = totalWages > 0 ? ((gameState.capitalist.totalSurplusValue / totalWages) * 100).toFixed(1) : 0;
+            document.getElementById('surplus-rate').textContent = surplusRate + '%';
+            
+            const profitRate = gameState.capitalist.money > 0 ? 
+                ((gameState.capitalist.totalSurplusValue / (gameState.capitalist.money + gameState.capitalist.totalSurplusValue)) * 100).toFixed(1) : 0;
+            document.getElementById('profit-rate').textContent = profitRate + '%';
+
+            // 更新工人列表
+            const workersList = document.getElementById('workers-list');
+            workersList.innerHTML = gameState.capitalist.workers.map(w => `
+                <div class="worker-card">
+                    <span>${w.name}</span>
+                    <div class="worker-energy">
+                        <div class="worker-energy-bar" style="width: ${w.energy}%"></div>
+                    </div>
+                    <span style="font-size: 12px; color: #888;">效率: ${(w.skill * 100).toFixed(0)}%</span>
+                </div>
+            `).join('');
+        }
+
+        function updateWorkerUI() {
+            document.getElementById('worker-money').textContent = gameState.worker.money;
+            document.getElementById('worker-energy').textContent = gameState.worker.energy;
+            document.getElementById('necessary-time').textContent = gameState.worker.necessaryLabor + 'h';
+            document.getElementById('surplus-time').textContent = gameState.worker.surplusLabor + 'h';
+            
+            // 更新劳动时间可视化
+            const totalHours = 12;
+            const necessaryPercent = (gameState.worker.necessaryLabor / totalHours) * 100;
+            const surplusPercent = (gameState.worker.surplusLabor / totalHours) * 100;
+            document.getElementById('necessary-labor').style.width = necessaryPercent + '%';
+            document.getElementById('surplus-labor').style.width = surplusPercent + '%';
+        }
+
+        function addWorkerEvent(text) {
+            gameState.worker.history.push(text);
+            const eventsDiv = document.getElementById('worker-events');
+            eventsDiv.innerHTML = gameState.worker.history.slice(-5).map(h => 
+                `<p style="margin: 5px 0; padding: 5px; background: #1a1a2e; border-radius: 3px;">${h}</p>`
+            ).join('');
+        }
+
+        // 市场波动图表
+        function updateMarketChart() {
+            const canvas = document.getElementById('priceCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.fillStyle = '#0f0f1e';
+            ctx.fillRect(0, 0, width, height);
+
+            if (gameState.market.prices.length < 2) return;
+
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            const maxPrice = Math.max(...gameState.market.prices);
+            const minPrice = Math.min(...gameState.market.prices);
+            const range = maxPrice - minPrice || 1;
+
+            gameState.market.prices.forEach((price, i) => {
+                const x = (i / (gameState.market.maxPoints - 1)) * width;
+                const y = height - ((price - minPrice) / range) * (height - 20) - 10;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+
+            ctx.stroke();
+
+            // 网格线
+            ctx.strokeStyle = '#2a2a3e';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 5; i++) {
+                const y = (i / 4) * height;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+        }
+
+        function fluctuateMarket() {
+            const lastPrice = gameState.market.prices[gameState.market.prices.length - 1] || 10;
+            const change = (Math.random() - 0.5) * 2;
+            const newPrice = Math.max(1, lastPrice + change);
+            
+            gameState.market.prices.push(newPrice);
+            if (gameState.market.prices.length > gameState.market.maxPoints) {
+                gameState.market.prices.shift();
+            }
+            updateMarketChart();
+        }
+
+        // 语录系统
+        function showQuote(text) {
+            const quoteDiv = document.getElementById('marx-quote');
+            document.getElementById('quote-text').textContent = text;
+            quoteDiv.classList.add('show');
+            setTimeout(() => quoteDiv.classList.remove('show'), 5000);
+        }
+
+        function showRandomQuote() {
+            const quote = marxQuotes[Math.floor(Math.random() * marxQuotes.length)];
+            showQuote(quote);
+        }
+
+        function showTutorial() {
+            showScene('tutorial-scene');
+        }
+
+        // 启动
+        init();
+    </script>
+</body>
+</html>
