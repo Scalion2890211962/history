@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人形机器人发展时间轴</title>
+    <style>
+        /* 基础样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin: 30px 0 50px;
+            font-size: 2.5rem;
+        }
+
+        /* 时间轴核心样式 */
+        .timeline {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 时间轴中心线 */
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: #3498db;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+            border-radius: 3px;
+        }
+
+        /* 时间轴条目容器 */
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+            animation: fadeIn 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        /* 奇数条目（左侧） */
+        .timeline-item:nth-child(odd) {
+            left: 0;
+            animation-delay: calc(0.2s * var(--i));
+        }
+
+        /* 偶数条目（右侧） */
+        .timeline-item:nth-child(even) {
+            left: 50%;
+            animation-delay: calc(0.2s * var(--i));
+        }
+
+        /* 时间轴圆点 */
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background-color: white;
+            border: 4px solid #3498db;
+            border-radius: 50%;
+            top: 15px;
+            z-index: 1;
+        }
+
+        .timeline-item:nth-child(odd)::after {
+            right: -12px;
+        }
+
+        .timeline-item:nth-child(even)::after {
+            left: -12px;
+        }
+
+        /* 内容卡片样式 */
+        .timeline-content {
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* 年份样式 */
+        .year {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        /* 标题样式 */
+        .title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        /* 描述样式 */
+        .description {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* 响应式设计 - 移动端适配 */
+        @media screen and (max-width: 768px) {
+            .timeline::after {
+                left: 31px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+                left: 0 !important;
+            }
+            
+            .timeline-item::after {
+                left: 18px !important;
+            }
+        }
+
+        /* 渐入动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>人形机器人发展时间轴</h1>
+        
+        <div class="timeline">
+            <!-- 1921年：机器人概念首次提出 -->
+            <div class="timeline-item" style="--i: 1;">
+                <div class="timeline-content">
+                    <div class="year">1921年</div>
+                    <div class="title">“Robot”一词首次出现</div>
+                    <div class="description">捷克作家卡雷尔·恰佩克在其科幻剧本《罗素姆的万能机器人》中首次使用“Robot”一词，源自捷克语“Robota”（意为劳役、苦工），奠定了机器人的概念基础。</div>
+                </div>
+            </div>
+
+            <!-- 1961年：第一台工业机器人 -->
+            <div class="timeline-item" style="--i: 2;">
+                <div class="timeline-content">
+                    <div class="year">1961年</div>
+                    <div class="title">Unimate：第一台实用工业机器人</div>
+                    <div class="description">乔治·德沃尔和约瑟夫·恩格尔伯格开发的Unimate机器人被安装在通用汽车工厂，用于搬运压铸零件，标志着工业机器人时代的开始。</div>
+                </div>
+            </div>
+
+            <!-- 1968年：Shakey机器人 -->
+            <div class="timeline-item" style="--i: 3;">
+                <div class="timeline-content">
+                    <div class="year">1968年</div>
+                    <div class="title">Shakey：首个具有感知和推理能力的移动机器人</div>
+                    <div class="description">由斯坦福研究所开发，配备了摄像头、测距仪和触觉传感器，能够自主规划路径完成简单任务，为人形机器人的感知系统奠定基础。</div>
+                </div>
+            </div>
+
+            <!-- 1997年：ASIMO原型机 -->
+            <div class="timeline-item" style="--i: 4;">
+                <div class="timeline-content">
+                    <div class="year">1997年</div>
+                    <div class="title">本田P2人形机器人原型发布</div>
+                    <div class="description">本田发布P2人形机器人，是ASIMO的前身，能够实现双足行走，最高行走速度达2km/h，为人形机器人的运动控制技术带来突破。</div>
+                </div>
+            </div>
+
+            <!-- 2000年：ASIMO正式发布 -->
+            <div class="timeline-item" style="--i: 5;">
+                <div class="timeline-content">
+                    <div class="year">2000年</div>
+                    <div class="title">本田ASIMO正式发布</div>
+                    <div class="description">本田正式推出ASIMO（Advanced Step in Innovative Mobility），身高1.2米，体重43公斤，能够奔跑、上下楼梯、踢足球，成为当时人形机器人的标杆。</div>
+                </div>
+            </div>
+
+            <!-- 2013年：Atlas机器人 -->
+            <div class="timeline-item" style="--i: 6;">
+                <div class="timeline-content">
+                    <div class="year">2013年</div>
+                    <div class="title">波士顿动力Atlas人形机器人首次亮相</div>
+                    <div class="description">波士顿动力发布Atlas人形机器人，身高1.8米，体重150公斤，具备强大的运动能力和环境适应能力，能够在复杂地形行走、完成高难度动作。</div>
+                </div>
+            </div>
+
+            <!-- 2016年：Pepper机器人商用 -->
+            <div class="timeline-item" style="--i: 7;">
+                <div class="timeline-content">
+                    <div class="year">2016年</div>
+                    <div class="title">软银Pepper机器人正式商用</div>
+                    <div class="description">软银推出Pepper情感机器人，能够识别人类的表情和语音，理解情绪并做出回应，主要应用于零售、服务等场景，开启人形机器人商用化进程。</div>
+                </div>
+            </div>
+
+            <!-- 2020年：特斯拉Optimus官宣 -->
+            <div class="timeline-item" style="--i: 8;">
+                <div class="timeline-content">
+                    <div class="year">2020年</div>
+                    <div class="title">特斯拉宣布Optimus（擎天柱）人形机器人计划</div>
+                    <div class="description">马斯克宣布特斯拉人形机器人项目，目标是打造一款面向大众消费市场的人形机器人，预计成本远低于传统工业机器人，将应用于家庭、工厂等场景。</div>
+                </div>
+            </div>
+
+            <!-- 2022年：Optimus原型机发布 -->
+            <div class="timeline-item" style="--i: 9;">
+                <div class="timeline-content">
+                    <div class="year">2022年</div>
+                    <div class="title">特斯拉Optimus原型机首次亮相</div>
+                    <div class="description">特斯拉AI Day上展示Optimus原型机，身高1.72米，体重56公斤，能够完成行走、搬运物品等基础任务，标志着消费级人形机器人进入实质性研发阶段。</div>
+                </div>
+            </div>
+
+            <!-- 2024年：多款人形机器人量产 -->
+            <div class="timeline-item" style="--i: 10;">
+                <div class="timeline-content">
+                    <div class="year">2024年</div>
+                    <div class="title">多家企业推出量产型人形机器人</div>
+                    <div class="description">优必选、傅里叶、特斯拉等企业相继推出可量产的人形机器人产品，覆盖工业、服务、家庭等多个领域，人形机器人开始从实验室走向实际应用。</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 可选：添加滚动触发动画效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = 1;
+                        entry.target.style.transform = 'translateX(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            // 监听所有时间轴条目
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                observer.observe(item);
+            });
+        });
+    </script>
+</body>
+</html>
