@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地理发展史 - H5互动游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        /* 游戏容器 */
+        .game-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 标题区域 */
+        .game-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .game-title h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .game-title p {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        /* 时间轴容器 */
+        .timeline-container {
+            position: relative;
+            margin: 50px 0;
+        }
+
+        /* 时间轴主线 */
+        .timeline-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #3498db;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        /* 年代节点 */
+        .timeline-nodes {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+        }
+
+        .node {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ecf0f1;
+            border: 3px solid #bdc3c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .node.active {
+            background: #3498db;
+            border-color: #2980b9;
+            color: white;
+        }
+
+        .node.completed {
+            background: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+
+        .node:hover {
+            transform: scale(1.1);
+        }
+
+        .node-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        /* 场景展示区 */
+        .scene-area {
+            height: 400px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 30px 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .scene-content {
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 30px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .scene-content.active {
+            display: flex;
+        }
+
+        .scene-img {
+            width: 80%;
+            height: 200px;
+            background: #f1f1f1;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7f8c8d;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .scene-desc {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #34495e;
+            max-width: 80%;
+        }
+
+        /* 问答区域 */
+        .quiz-area {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            display: none;
+        }
+
+        .quiz-area.active {
+            display: block;
+        }
+
+        .quiz-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .quiz-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .option:hover {
+            background: #d5dbdb;
+        }
+
+        .option.correct {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .option.wrong {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* 得分区域 */
+        .score-area {
+            text-align: right;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .score-area span {
+            color: #e67e22;
+            font-weight: bold;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-next {
+            background: #3498db;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .btn-next:hover {
+            background: #2980b9;
+        }
+
+        .btn-next:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .quiz-options {
+                grid-template-columns: 1fr;
+            }
+
+            .scene-img {
+                width: 95%;
+            }
+
+            .node {
+                width: 50px;
+                height: 50px;
+            }
+
+            .node-label {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 游戏标题 -->
+        <div class="game-title">
+            <h1>地理发展史</h1>
+            <p>探索地球46亿年的演变历程</p>
+        </div>
+
+        <!-- 得分区域 -->
+        <div class="score-area">
+            当前积分: <span id="score">0</span>
+        </div>
+
+        <!-- 时间轴 -->
+        <div class="timeline-container">
+            <div class="timeline-line"></div>
+            <div class="timeline-nodes">
+                <div class="node active" data-era="archaean">
+                    太古代
+                    <div class="node-label">40亿-25亿年前</div>
+                </div>
+                <div class="node" data-era="proterozoic">
+                    元古代
+                    <div class="node-label">25亿-5.41亿年前</div>
+                </div>
+                <div class="node" data-era="paleozoic">
+                    古生代
+                    <div class="node-label">5.41亿-2.52亿年前</div>
+                </div>
+                <div class="node" data-era="mesozoic">
+                    中生代
+                    <div class="node-label">2.52亿-6600万年前</div>
+                </div>
+                <div class="node" data-era="cenozoic">
+                    新生代
+                    <div class="node-label">6600万年前-至今</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 场景展示区 -->
+        <div class="scene-area">
+            <!-- 太古代场景 -->
+            <div class="scene-content active" id="archaean">
+                <div class="scene-img" style="background-image: url('https://picsum.photos/id/1015/800/400');">
+                    太古代地理场景
+                </div>
+                <div class="scene-desc">
+                    太古代是地球形成的初期阶段，此时地球表面遍布火山，大气中没有氧气，海洋刚形成，还没有生命存在，地壳活动极其频繁。
+                </div>
+            </div>
+
+            <!-- 元古代场景 -->
+            <div class="scene-content" id="proterozoic">
+                <div class="scene-img" style="background-image: url('https://picsum.photos/id/1018/800/400');">
+                    元古代地理场景
+                </div>
+                <div class="scene-desc">
+                    元古代时期，大气中开始出现氧气，超级大陆开始形成，海洋中出现了简单的单细胞生物，冰川活动频繁，地球进入了第一个大冰期。
+                </div>
+            </div>
+
+            <!-- 古生代场景 -->
+            <div class="scene-content" id="paleozoic">
+                <div class="scene-img" style="background-image: url('https://picsum.photos/id/1019/800/400');">
+                    古生代地理场景
+                </div>
+                <div class="scene-desc">
+                    古生代是生命大爆发的时代，海洋生物迅速演化，陆地植物开始出现，板块运动剧烈，潘吉亚超大陆开始形成，末期发生了地球史上最大的生物灭绝事件。
+                </div>
+            </div>
+
+            <!-- 中生代场景 -->
+            <div class="scene-content" id="mesozoic">
+                <div class="scene-img" style="background-image: url('https://picsum.photos/id/1020/800/400');">
+                    中生代地理场景
+                </div>
+                <div class="scene-desc">
+                    中生代又称"爬行动物时代"，恐龙称霸地球，潘吉亚超大陆开始分裂，大西洋形成，气候温暖湿润，裸子植物繁盛。
+                </div>
+            </div>
+
+            <!-- 新生代场景 -->
+            <div class="scene-content" id="cenozoic">
+                <div class="scene-img" style="background-image: url('https://picsum.photos/id/1025/800/400');">
+                    新生代地理场景
+                </div>
+                <div class="scene-desc">
+                    新生代是哺乳动物和被子植物的时代，喜马拉雅山脉形成，各大洲逐渐形成现在的轮廓，第四纪冰期出现，人类开始演化。
+                </div>
+            </div>
+        </div>
+
+        <!-- 问答区域 -->
+        <div class="quiz-area active" id="quiz-archaean">
+            <div class="quiz-question">
+                问题：太古代时期的地球大气中主要缺少哪种气体？
+            </div>
+            <div class="quiz-options">
+                <div class="option" data-correct="false">氮气</div>
+                <div class="option" data-correct="true">氧气</div>
+                <div class="option" data-correct="false">二氧化碳</div>
+                <div class="option" data-correct="false">氢气</div>
+            </div>
+            <button class="btn btn-next" id="next-btn" disabled>进入下一个年代</button>
+        </div>
+
+        <div class="quiz-area" id="quiz-proterozoic">
+            <div class="quiz-question">
+                问题：元古代时期出现了哪种关键的地理事件？
+            </div>
+            <div class="quiz-options">
+                <div class="option" data-correct="false">恐龙灭绝</div>
+                <div class="option" data-correct="true">大气中出现氧气</div>
+                <div class="option" data-correct="false">人类演化</div>
+                <div class="option" data-correct="false">喜马拉雅山脉形成</div>
+            </div>
+            <button class="btn btn-next" id="next-btn-pro" disabled>进入下一个年代</button>
+        </div>
+
+        <div class="quiz-area" id="quiz-paleozoic">
+            <div class="quiz-question">
+                问题：古生代末期发生了什么重大事件？
+            </div>
+            <div class="quiz-options">
+                <div class="option" data-correct="true">地球史上最大生物灭绝</div>
+                <div class="option" data-correct="false">恐龙称霸地球</div>
+                <div class="option" data-correct="false">人类出现</div>
+                <div class="option" data-correct="false">大西洋形成</div>
+            </div>
+            <button class="btn btn-next" id="next-btn-pal" disabled>进入下一个年代</button>
+        </div>
+
+        <div class="quiz-area" id="quiz-mesozoic">
+            <div class="quiz-question">
+                问题：中生代又被称为？
+            </div>
+            <div class="quiz-options">
+                <div class="option" data-correct="false">哺乳动物时代</div>
+                <div class="option" data-correct="true">爬行动物时代</div>
+                <div class="option" data-correct="false">藻类时代</div>
+                <div class="option" data-correct="false">人类时代</div>
+            </div>
+            <button class="btn btn-next" id="next-btn-mes" disabled>进入下一个年代</button>
+        </div>
+
+        <div class="quiz-area" id="quiz-cenozoic">
+            <div class="quiz-question">
+                问题：新生代形成了哪座著名山脉？
+            </div>
+            <div class="quiz-options">
+                <div class="option" data-correct="false">阿尔卑斯山脉</div>
+                <div class="option" data-correct="false">安第斯山脉</div>
+                <div class="option" data-correct="true">喜马拉雅山脉</div>
+                <div class="option" data-correct="false">落基山脉</div>
+            </div>
+            <button class="btn btn-next" id="next-btn-cen" disabled>完成游戏</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentScore = 0;
+        let currentEra = "archaean";
+        const scoreElement = document.getElementById("score");
+        
+        // 初始化节点点击事件
+        const nodes = document.querySelectorAll(".node");
+        nodes.forEach(node => {
+            node.addEventListener("click", function() {
+                // 只能点击已完成或当前的节点
+                const era = this.dataset.era;
+                if (this.classList.contains("completed") || this.classList.contains("active")) {
+                    switchEra(era);
+                }
+            });
+        });
+
+        // 切换地质年代
+        function switchEra(era) {
+            // 隐藏所有场景和问答
+            document.querySelectorAll(".scene-content").forEach(scene => {
+                scene.classList.remove("active");
+            });
+            document.querySelectorAll(".quiz-area").forEach(quiz => {
+                quiz.classList.remove("active");
+            });
+
+            // 显示当前年代的场景和问答
+            document.getElementById(era).classList.add("active");
+            document.getElementById(`quiz-${era}`).classList.add("active");
+            
+            // 更新节点状态
+            nodes.forEach(node => {
+                node.classList.remove("active");
+            });
+            document.querySelector(`.node[data-era="${era}"]`).classList.add("active");
+            
+            currentEra = era;
+        }
+
+        // 初始化答题选项事件
+        const options = document.querySelectorAll(".option");
+        options.forEach(option => {
+            option.addEventListener("click", function() {
+                // 防止重复答题
+                if (this.parentElement.querySelector(".correct") || this.parentElement.querySelector(".wrong")) {
+                    return;
+                }
+
+                const isCorrect = this.dataset.correct === "true";
+                if (isCorrect) {
+                    this.classList.add("correct");
+                    currentScore += 10; // 正确加10分
+                    scoreElement.textContent = currentScore;
+                    
+                    // 将当前节点标记为已完成
+                    document.querySelector(`.node[data-era="${currentEra}"]`).classList.add("completed");
+                } else {
+                    this.classList.add("wrong");
+                    // 显示正确答案
+                    this.parentElement.querySelector('[data-correct="true"]').classList.add("correct");
+                }
+
+                // 启用下一个按钮
+                const nextBtnId = `next-btn${currentEra !== "archaean" ? "-" + currentEra.substring(0, 3) : ""}`;
+                document.getElementById(nextBtnId).removeAttribute("disabled");
+            });
+        });
+
+        // 初始化下一个按钮事件
+        document.getElementById("next-btn").addEventListener("click", () => switchEra("proterozoic"));
+        document.getElementById("next-btn-pro").addEventListener("click", () => switchEra("paleozoic"));
+        document.getElementById("next-btn-pal").addEventListener("click", () => switchEra("mesozoic"));
+        document.getElementById("next-btn-mes").addEventListener("click", () => switchEra("cenozoic"));
+        document.getElementById("next-btn-cen").addEventListener("click", () => {
+            alert(`游戏完成！你的总积分是：${currentScore}分\n感谢探索地球的地理发展史！`);
+            // 重置游戏
+            currentScore = 0;
+            scoreElement.textContent = 0;
+            nodes.forEach(node => {
+                node.classList.remove("completed");
+                if (node.dataset.era === "archaean") {
+                    node.classList.add("active");
+                } else {
+                    node.classList.remove("active");
+                }
+            });
+            switchEra("archaean");
+            // 重置所有选项状态
+            options.forEach(option => {
+                option.classList.remove("correct", "wrong");
+            });
+            // 禁用所有下一个按钮
+            document.querySelectorAll(".btn-next").forEach(btn => {
+                btn.setAttribute("disabled", "true");
+            });
+        });
+    </script>
+</body>
+</html>
