@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>比特深渊：科技哲学史</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700&family=Share+Tech+Mono&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #00ff9d;
+            --secondary: #ff006e;
+            --accent: #3a86ff;
+            --dark: #0a0a0f;
+            --light: #e0e0e0;
+            --glitch: #ffff00;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: var(--dark);
+            color: var(--light);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* 背景动画层 */
+        .bg-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 100%);
+        }
+        
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float 10s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* 扫描线效果 */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: scanline 8s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+        
+        /* 主容器 */
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        /* 顶部状态栏 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            background: rgba(0,0,0,0.5);
+            border-bottom: 1px solid rgba(0,255,157,0.3);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .era-indicator {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+        
+        .cognition-meter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .meter-bar {
+            width: 150px;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px var(--primary);
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* 左侧时间轴 */
+        .timeline {
+            width: 80px;
+            background: rgba(0,0,0,0.3);
+            border-right: 1px solid rgba(58,134,255,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            position: relative;
+        }
+        
+        .timeline-line {
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                transparent 0%, 
+                var(--accent) 20%, 
+                var(--accent) 80%, 
+                transparent 100%);
+            opacity: 0.3;
+        }
+        
+        .era-node {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid var(--accent);
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            z-index: 10;
+            font-size: 12px;
+        }
+        
+        .era-node.active {
+            background: var(--accent);
+            box-shadow: 0 0 20px var(--accent);
+            transform: scale(1.2);
+        }
+        
+        .era-node.completed {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .era-node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--accent);
+        }
+        
+        /* 中央叙事区 */
+        .narrative-area {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .scene-container {
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .era-title {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--light), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+        
+        .era-subtitle {
+            color: var(--accent);
+            font-family: 'Share Tech Mono', monospace;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+        
+        .narrative-text {
+            font-size: 1.2em;
+            line-height: 2;
+            margin-bottom: 30px;
+            text-align: justify;
+            position: relative;
+        }
+        
+        .narrative-text::first-letter {
+            font-size: 3em;
+            float: left;
+            line-height: 1;
+            margin-right: 10px;
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .philosopher-card {
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid var(--primary);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .philosopher-card::before {
+            content: '"';
+            position: absolute;
+            top: -20px;
+            left: 10px;
+            font-size: 100px;
+            opacity: 0.1;
+            color: var(--primary);
+        }
+        
+        .philosopher-name {
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        
+        .dilemma-container {
+            background: linear-gradient(135deg, rgba(255,0,110,0.1), rgba(0,255,157,0.1));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dilemma-title {
+            font-size: 1.3em;
+            color: var(--secondary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .dilemma-title::before {
+            content: '◈';
+            color: var(--secondary);
+        }
+        
+        .choices {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .choice-btn {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--light);
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1em;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .choice-btn:hover {
+            border-color: var(--primary);
+            transform: translateX(10px);
+            background: rgba(0,255,157,0.1);
+        }
+        
+        .choice-btn::after {
+            content: '→';
+            position: absolute;
+            right: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .choice-btn:hover::after {
+            opacity: 1;
+        }
+        
+        /* 右侧认知面板 */
+        .cognition-panel {
+            width: 300px;
+            background: rgba(0,0,0,0.3);
+            border-left: 1px solid rgba(0,255,157,0.2);
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .panel-title {
+            color: var(--primary);
+            font-family: 'Share Tech Mono', monospace;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .concept-tag {
+            display: inline-block;
+            background: rgba(58,134,255,0.2);
+            border: 1px solid var(--accent);
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .concept-tag:hover {
+            background: var(--accent);
+            transform: scale(1.05);
+        }
+        
+        .concept-tag.unlocked {
+            background: rgba(0,255,157,0.2);
+            border-color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 5px var(--primary); }
+            50% { box-shadow: 0 0 20px var(--primary); }
+        }
+        
+        .archive-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 2px solid transparent;
+            transition: all 0.3s;
+            opacity: 0.5;
+        }
+        
+        .archive-item.unlocked {
+            opacity: 1;
+            border-left-color: var(--primary);
+        }
+        
+        .archive-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        
+        /* 底部控制栏 */
+        .control-bar {
+            height: 60px;
+            background: rgba(0,0,0,0.8);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            padding: 0 30px;
+        }
+        
+        .control-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: var(--light);
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9em;
+        }
+        
+        .control-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 15px rgba(0,255,157,0.3);
+        }
+        
+        .control-btn.primary {
+            background: var(--primary);
+            color: var(--dark);
+            border-color: var(--primary);
+        }
+        
+        .control-btn.primary:hover {
+            background: transparent;
+            color: var(--primary);
+        }
+        
+        /* 特殊效果 */
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch-text::before {
+            animation: glitch-1 2s infinite;
+            color: var(--secondary);
+            z-index: -1;
+        }
+        
+        .glitch-text::after {
+            animation: glitch-2 2s infinite;
+            color: var(--accent);
+            z-index: -2;
+        }
+        
+        @keyframes glitch-1 {
+            0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+            20% { clip-path: inset(20% 0 30% 0); transform: translate(-2px, 2px); }
+            40% { clip-path: inset(50% 0 20% 0); transform: translate(2px, -2px); }
+            60% { clip-path: inset(10% 0 60% 0); transform: translate(-2px, 0); }
+            80% { clip-path: inset(80% 0 5% 0); transform: translate(2px, 2px); }
+        }
+        
+        @keyframes glitch-2 {
+            0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+            20% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -2px); }
+            40% { clip-path: inset(30% 0 40% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(10% 0 80% 0); transform: translate(2px, 0); }
+            80% { clip-path: inset(40% 0 30% 0); transform: translate(-2px, -2px); }
+        }
+        
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #0a0a0f);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,255,157,0.2);
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .modal-close:hover {
+            color: var(--secondary);
+        }
+        
+        .concept-detail h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        
+        .concept-detail p {
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        
+        .concept-meta {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.6);
+            font-family: 'Share Tech Mono', monospace;
+        }
+        
+        /* 开始界面 */
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .start-screen.hidden {
+            display: none;
+        }
+        
+        .game-title {
+            font-size: 4em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, var(--primary), var(--accent), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease infinite;
+            background-size: 200% 200%;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .game-subtitle {
+            font-size: 1.2em;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 50px;
+            max-width: 600px;
+            line-height: 1.8;
+        }
+        
+        .start-btn {
+            padding: 20px 60px;
+            font-size: 1.2em;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Share Tech Mono', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transition: left 0.3s;
+            z-index: -1;
+        }
+        
+        .start-btn:hover::before {
+            left: 0;
+        }
+        
+        .start-btn:hover {
+            color: var(--dark);
+            box-shadow: 0 0 30px var(--primary);
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .cognition-panel {
+                display: none;
+            }
+            .timeline {
+                width: 60px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .timeline {
+                display: none;
+            }
+            .narrative-area {
+                padding: 20px;
+            }
+            .era-title {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景层 -->
+    <div class="bg-layer">
+        <div class="particles" id="particles"></div>
+    </div>
+    <div class="scanlines"></div>
+    
+    <!-- 开始界面 -->
+    <div class="start-screen" id="startScreen">
+        <h1 class="game-title glitch-text" data-text="比特深渊">比特深渊</h1>
+        <p class="game-subtitle">
+            穿越科技哲学史的迷雾，在理性与存在的交界处寻找答案。<br>
+            从古希腊的火种到人工智能的觉醒，每一次选择都重塑着文明的轨迹。
+        </p>
+        <button class="start-btn" onclick="startGame()">初始化意识 // START</button>
+    </div>
+    
+    <!-- 游戏主界面 -->
+    <div class="game-container" id="gameContainer" style="display: none;">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div class="era-indicator" id="currentEra">ERA: 古典时代 // 公元前800年</div>
+            <div class="cognition-meter">
+                <span>认知深度:</span>
+                <div class="meter-bar">
+                    <div class="meter-fill" id="cognitionFill" style="width: 20%"></div>
+                </div>
+                <span id="cognitionValue">20%</span>
+            </div>
+        </div>
+        
+        <!-- 主内容 -->
+        <div class="main-content">
+            <!-- 时间轴 -->
+            <div class="timeline">
+                <div class="timeline-line"></div>
+                <div class="era-node active" data-era="0" onclick="jumpToEra(0)">古</div>
+                <div class="era-node" data-era="1" onclick="jumpToEra(1)">启</div>
+                <div class="era-node" data-era="2" onclick="jumpToEra(2)">工</div>
+                <div class="era-node" data-era="3" onclick="jumpToEra(3)">电</div>
+                <div class="era-node" data-era="4" onclick="jumpToEra(4)">信</div>
+                <div class="era-node" data-era="5" onclick="jumpToEra(5)">智</div>
+            </div>
+            
+            <!-- 叙事区 -->
+            <div class="narrative-area" id="narrativeArea">
+                <div class="scene-container" id="sceneContainer">
+                    <!-- 动态内容 -->
+                </div>
+            </div>
+            
+            <!-- 认知面板 -->
+            <div class="cognition-panel">
+                <div class="panel-title">/// 概念解锁</div>
+                <div id="conceptCloud">
+                    <span class="concept-tag unlocked">逻各斯</span>
+                    <span class="concept-tag">技术伦理</span>
+                    <span class="concept-tag">工具理性</span>
+                    <span class="concept-tag">控制论</span>
+                    <span class="concept-tag">后人类</span>
+                </div>
+                
+                <div class="panel-title" style="margin-top: 30px;">/// 思想档案</div>
+                <div id="archiveList">
+                    <div class="archive-item unlocked">
+                        <strong>普罗米修斯之火</strong><br>
+                        <small>技术的起源神话</small>
+                    </div>
+                    <div class="archive-item">
+                        <strong>笛卡尔剧场</strong><br>
+                        <small>心身二元论</small>
+                    </div>
+                    <div class="archive-item">
+                        <strong>弗兰肯斯坦</strong><br>
+                        <small>科学怪人的警告</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 控制栏 -->
+        <div class="control-bar">
+            <button class="control-btn" onclick="showArchive()">档案库</button>
+            <button class="control-btn primary" onclick="nextScene()">继续探索 →</button>
+            <button class="control-btn" onclick="toggleMap()">思维导图</button>
+        </div>
+    </div>
+    
+    <!-- 概念详情模态框 -->
+    <div class="modal" id="conceptModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div class="concept-detail" id="conceptDetail">
+                <!-- 动态内容 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏数据：科技哲学史六大时代
+        const gameData = {
+            eras: [
+                {
+                    id: 0,
+                    title: "古典时代：逻各斯的火种",
+                    subtitle: "公元前800年 - 公元500年 | 从神话到理性的觉醒",
+                    scenes: [
+                        {
+                            text: "你站在古希腊的雅典城邦，空气中弥漫着橄榄油和羊皮纸的气息。远处，苏格拉底正在街头与人辩论。这是一个关键的历史节点：人类开始用理性（Logos）而非神话（Mythos）来解释世界。",
+                            philosopher: {
+                                name: "亚里士多德",
+                                quote: "技术（Techne）是使尚未存在的事物生成的知识，与理论（Episteme）不同，它关乎制作与创造。"
+                            },
+                            dilemma: {
+                                title: "第一次技术伦理困境",
+                                question: "你是一位工匠，掌握了制造自动机械人（Automaton）的技术。这种机械可以替代奴隶劳动，但城邦的统治阶级担心这会动摇社会秩序。你会：",
+                                choices: [
+                                    {
+                                        text: "公开技术，相信理性终将引导社会进步",
+                                        effect: { cognition: 10, concept: "技术乐观主义" },
+                                        result: "你触发了'技术解放'路线。亚里士多德在你的笔记旁批注：'技艺模仿自然，但自然从不跳跃。'"
+                                    },
+                                    {
+                                        text: "销毁图纸，维持现有的社会结构",
+                                        effect: { cognition: -5, concept: "技术保守主义" },
+                                        result: "你选择了稳定压倒创新。柏拉图在《理想国》中记录了你的选择：'技艺必须服务于善的理念。'"
+                                    },
+                                    {
+                                        text: "仅传授给值得信赖的哲学家，建立技术精英统治",
+                                        effect: { cognition: 15, concept: "技术精英主义" },
+                                        result: "你开启了'哲人王'的隐秘传统。这种思想将在文艺复兴时期被重新发现。"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            text: "时间流转，你来到亚历山大图书馆。在这里，希罗（Hero of Alexandria）正在研究蒸汽动力的机械装置。然而，奴隶制的普遍存在使得这种技术缺乏发展的社会动力。",
+                            philosopher: {
+                                name: "卢克莱修",
+                                quote: "没有什么东西是从无中产生的，所有发明都是已有元素的重新组合。"
+                            },
+                            dilemma: {
+                                title: "技术停滞的哲学根源",
+                                question: "你意识到古希腊拥有所有工业革命的技术前提（数学、力学、金属加工），却缺乏发展的意愿。这是因为：",
+                                choices: [
+                                    {
+                                        text: "奴隶制提供了廉价劳动力，降低了对机械化的需求",
+                                        effect: { cognition: 10, concept: "技术-社会关系" },
+                                        result: "马克思后来在《资本论》中引用了你的观察：'手工磨产生的是封建主为首的社会，蒸汽磨产生的是工业资本家为首的社会。'"
+                                    },
+                                    {
+                                        text: "希腊人认为体力劳动是低贱的，不配由自由民从事",
+                                        effect: { cognition: 10, concept: "劳动价值论" },
+                                        result: "你触及了技术哲学的核心：技术不仅是工具，更承载着价值判断。这种观念将在基督教'劳动神圣'思想中被颠覆。"
+                                    },
+                                    {
+                                        text: "宇宙观认为自然是有生命的，机械化是对自然的亵渎",
+                                        effect: { cognition: 15, concept: "有机自然观" },
+                                        result: "你预见了现代生态技术哲学的先声。这种思想将在20世纪海德格尔的'座架'（Gestell）概念中得到回响。"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    id: 1,
+                    title: "启蒙时代：机械的宇宙",
+                    subtitle: "1600年 - 1800年 | 理性之光与机械自然观",
+                    scenes: [
+                        {
+                            text: "你置身于17世纪的巴黎，笛卡尔正在撰写《谈谈方法》。世界被构想为一台精密的机器，上帝是钟表匠，自然法则即机械原理。这种世界观为现代科学技术奠定了认识论基础。",
+                            philosopher: {
+                                name: "笛卡尔",
+                                quote: "给我物质和运动，我将为你构造出世界。"
+                            },
+                            dilemma: {
+                                title: "心身二元论的困境",
+                                question: "笛卡尔将心灵（Res cogitans）与身体（Res extensa）彻底分离。作为一位早期神经科学家，你发现了反射弧机制，这暗示思维可能是物质的产物。你会：",
+                                choices: [
+                                    {
+                                        text: "坚持二元论，认为反射只是身体的自动机，灵魂仍居于松果体",
+                                        effect: { cognition: 5, concept: "笛卡尔剧场" },
+                                        result: "你维护了人类特殊性的堡垒，但也为心身交互问题埋下了隐患。这种困境将持续到20世纪。"
+                                    },
+                                    {
+                                        text: "提出'机器中的幽灵'是多余的，思维即大脑活动",
+                                        effect: { cognition: 20, concept: "唯物主义" },
+                                        result: "你比拉·梅特里早了一个世纪提出'人是机器'。这种激进思想将在启蒙后期引发轩然大波。"
+                                    },
+                                    {
+                                        text: "发展'偶因论'，认为心身平行运行，上帝时时协调",
+                                        effect: { cognition: 10, concept: "平行论" },
+                                        result: "你创造了斯宾诺莎和莱布尼茨哲学的先声。这种'前定和谐'思想暗示了后来的计算主义：思维与物质是同一算法的不同实现。"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            text: "工业革命的前夜，你站在瓦特的蒸汽机旁。培根的'知识就是力量'正在变为现实，但卢梭警告：'科学和艺术的进步腐蚀了人类道德。'",
+                            philosopher: {
+                                name: "弗朗西斯·培根",
+                                quote: "人类要重获在伊甸园中被剥夺的统治自然的权力，必须通过科学和技术。"
+                            },
+                            dilemma: {
+                                title: "普罗米修斯主义的代价",
+                                question: "蒸汽机将释放巨大的生产力，但也意味着矿井更深的开采、童工的广泛使用和环境的破坏。作为一位启蒙思想家，你：",
+                                choices: [
+                                    {
+                                        text: "全力支持，认为技术进步必然带来社会进步",
+                                        effect: { cognition: 5, concept: "进步史观" },
+                                        result: "你成为了工业意识形态的先驱。但历史将证明，技术理性与道德理性并非总是同步。"
+                                    },
+                                    {
+                                        text: "主张技术发展必须受伦理约束，建立技术评估机制",
+                                        effect: { cognition: 20, concept: "技术伦理" },
+                                        result: "你超前提出了'技术评估'（Technology Assessment）概念。这种思想将在20世纪下半叶成为政策科学的重要组成部分。"
+                                    },
+                                    {
+                                        text: "回归自然，反对一切机械文明",
+                                        effect: { cognition: 10, concept: "卢梭主义" },
+                                        result: "你开启了浪漫主义对技术的批判传统。这种思想将在19世纪的艺术和20世纪的生态运动中持续发酵。"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: "工业时代：铁与蒸汽的辩证法",
+                    subtitle: "1800年 - 1900年 | 异化、进化与电气化的曙光",
+                    scenes: [
+                        {
+                            text: "曼彻斯特的工厂浓烟滚滚。马克思在《1844年经济学哲学手稿》中分析：'工人生产的财富越多，他的产品的力量和数量越大，他就越贫穷。'技术成为了异化的媒介。",
+                            philosopher: {
+                                name: "卡尔·马克思",
+                                quote: "机器是生产剩余价值的手段，但同时也是工人阶级反抗压迫的物质基础。"
+                            },
+                            dilemma: {
+                                title: "卢德运动的哲学反思",
+                                question: "工人正在砸毁机器，认为机器是他们贫困的根源。作为一位哲学家，你如何看待这种'技术恐惧'？",
+                                choices: [
+                                    {
+                                        text: "支持卢德派，认为机器确实是剥削的工具，应限制技术发展",
+                                        effect: { cognition: 5, concept: "技术恐惧" },
+                                        result: "你成为了技术悲观主义的代表。但历史证明，单纯破坏技术无法解决生产关系的问题。"
+                                    },
+                                    {
+                                        text: "反对卢德派，认为问题不在机器而在资本主义所有制",
+                                        effect: { cognition: 20, concept: "历史唯物主义" },
+                                        result: "你提出了关键洞见：技术是中性的，其社会效果取决于嵌入其中的生产关系。这为后来的技术社会学奠定了基础。"
+                                    },
+                                    {
+                                        text: "提出'技术自主性'，认为技术一旦产生就有独立的发展逻辑",
+                                        effect: { cognition: 15, concept: "技术决定论" },
+                                        result: "你预示了20世纪埃吕尔和温纳的技术自主论。这种思想认为技术系统会超越人类的控制，获得自身的发展动力。"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            text: "达尔文的《物种起源》震惊了世界。进化论不仅改变了生物学，更深刻影响了技术哲学：如果人类是自然选择的产物，那么技术是否也是进化的延伸？",
+                            philosopher: {
+                                name: "塞缪尔·巴特勒",
+                                quote: "机器是某种形式的'机械生命'，正在经历与生物类似的进化过程。"
+                            },
+                            dilemma: {
+                                title: "机器意识的萌芽",
+                                question: "你观察到机械系统越来越复杂，似乎表现出某种'目的性'行为。这是否意味着机器可能拥有某种初级意识？",
+                                choices: [
+                                    {
+                                        text: "坚决否认，认为意识只能是生物组织的属性",
+                                        effect: { cognition: 5, concept: "生物主义" },
+                                        result: "你维护了生命与机器的界限。但这种立场在计算机时代将面临严峻挑战。"
+                                    },
+                                    {
+                                        text: "认为意识是复杂系统的涌现属性，机器理论上可以拥有",
+                                        effect: { cognition: 20, concept: "涌现论" },
+                                        result: "你提前一个世纪预见了人工智能哲学。这种思想将在20世纪后期随着神经网络的发展而复兴。"
+                                    },
+                                    {
+                                        text: "提出'人工选择'，人类正在扮演上帝角色创造新物种",
+                                        effect: { cognition: 15, concept: "技术进化" },
+                                        result: "你开启了技术进化论的传统。凯文·凯利在《技术想要什么》中将发展这一思想：技术是生命的第七王国。"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: "电气时代：控制论的觉醒",
+                    subtitle: "1900年 - 1950年 | 信息、反馈与系统思维",
+                    scenes: [
+                        {
+                            text: "第二次世界大战的硝烟中，维纳在MIT研发防空火力控制系统。他意识到，无论是机器、生物还是社会系统，都共享着'反馈'这一核心机制。控制论（Cybernetics）诞生了。",
+                            philosopher: {
+                                name: "诺伯特·维纳",
+                                quote: "控制论是关于动物和机器中控制与通信的科学。信息就是信息，既不是物质也不是能量。"
+                            },
+                            dilemma: {
+                                title: "自动化与失业的伦理",
+                                question: "你发明的自动化系统可以大幅提高生产效率，但将导致大规模失业。政府询问你是否应该推广这项技术：",
+                                choices: [
+                                    {
+                                        text: "推广，但建立普遍基本收入（UBI）保障失业者",
+                                        effect: { cognition: 20, concept: "技术人道主义" },
+                                        result: "你超前提出了21世纪的热门议题。维纳本人确实警告过自动化的社会后果，但当时的政治体系未能采纳你的建议。"
+                                    },
+                                    {
+                                        text: "限制使用，保护传统工作岗位",
+                                        effect: { cognition: 5, concept: "技术保守主义" },
+                                        result: "你试图阻止历史车轮，但技术竞争的国际压力使得这种限制难以维持。"
+                                    },
+                                    {
+                                        text: "完全市场化，让社会自然适应",
+                                        effect: { cognition: -5, concept: "社会达尔文主义" },
+                                        result: "你选择了效率优先的道路。这导致了短期的社会动荡，但也加速了后工业社会的到来。"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            text: "图灵在布莱切利园破解Enigma密码。他提出了一个深刻的问题：'机器能思考吗？'这不仅是技术问题，更是哲学问题——我们如何定义思考？",
+                            philosopher: {
+                                name: "阿兰·图灵",
+                                quote: "与其问'机器能思考吗'，不如问'机器能否在模仿游戏中欺骗人类'。"
+                            },
+                            dilemma: {
+                                title: "图灵测试的哲学意涵",
+                                question: "一台机器通过了图灵测试，意味着它在行为上无法与人类区分。这是否意味着它具有意识？",
+                                choices: [
+                                    {
+                                        text: "是的，行为即本质，通过测试即拥有心智",
+                                        effect: { cognition: 15, concept: "功能主义" },
+                                        result: "你成为了功能主义的先驱。这种思想认为心灵状态是由其因果功能定义的，与实现材质无关。"
+                                    },
+                                    {
+                                        text: "否，模拟不等于复制，机器缺乏主观体验（感质）",
+                                        effect: { cognition: 15, concept: "生物自然主义" },
+                                        result: "你支持塞尔的中文屋论证：形式操作不等于理解。意识需要特定的生物基础。"
+                                    },
+                                    {
+                                        text: "问题本身有问题，'意识'是 folk psychology 的过时概念",
+                                        effect: { cognition: 20, concept: "取消唯物主义" },
+                                        result: "你采取了激进的取消论立场：随着神经科学的发展，'意识'将像'燃素'一样被抛弃。这预示了21世纪的神经哲学。"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    id: 4,
+                    title: "信息时代：赛博空间的形而上学",
+                    subtitle: "1950年 - 2000年 | 虚拟、后人类与全球化",
+                    scenes: [
+                        {
+                            text: "你站在加州的硅谷，互联网正在将世界编织成一张巨大的网络。海德格尔的预言似乎成真了：技术不仅是手段，更是一种'座架'（Gestell），它框定了我们理解世界的方式。",
+                            philosopher: {
+                                name: "马丁·海德格尔",
+                                quote: "技术的本质绝不是技术性的。它是一种解蔽方式，现代技术则是一种'挑战'（Herausfordern），将自然视为持存物（Bestand）。"
+                            },
+                            dilemma: {
+                                title: "数字存在的真实性",
+                                question: "随着虚拟现实技术的发展，人们开始质疑：在虚拟世界中的体验是否比'真实'世界更真实？作为一位现象学家，你：",
+                                choices: [
+                                    {
+                                        text: "坚持实在论，虚拟只是模拟，缺乏物的物性（Dinglichkeit）",
+                                        effect: { cognition: 10, concept: "技术批判" },
+                                        result: "你维护了海德格尔的立场：技术遮蔽了存在的真理。但这种观点在数字原住民中越来越缺乏说服力。"
+                                    },
+                                    {
+                                        text: "认为真实是体验的质量，而非物理位置",
+                                        effect: { cognition: 20, concept: "体验实在论" },
+                                        result: "你预示了VR哲学和元宇宙伦理。在数字时代，'在场'（presence）被重新定义为心理现象而非物理状态。"
+                                    },
+                                    {
+                                        text: "提出'混合现实'，虚实界限已经瓦解",
+                                        effect: { cognition: 15, concept: "后现象学" },
+                                        result: "你支持唐·伊德的技术中介理论：技术不是透明的工具，而是积极地塑造我们的知觉和经验。"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            text: "基因编辑、纳米技术、人工智能 converging。雷·库兹韦尔预言'奇点'（Singularity）将至，人类将与机器融合。福山警告：这是'我们后人类的未来'，可能终结人性本身。",
+                            philosopher: {
+                                name: "弗朗西斯·福山",
+                                quote: "生物技术革命的最大危险在于，它可能改变人性，从而动摇人权的基础——因为人权基于人的本性。"
+                            },
+                            dilemma: {
+                                title: "增强还是超越？",
+                                question: "技术现在可以不仅治疗疾病，还能增强人类能力（智力、体力、寿命）。作为社会伦理委员会成员，你支持：",
+                                choices: [
+                                    {
+                                        text: "治疗性使用允许，增强性使用禁止，维护'人的尊严'",
+                                        effect: { cognition: 10, concept: "生物保守主义" },
+                                        result: "你选择了谨慎的道路。但黑市增强技术的泛滥使得这种管制越来越困难。"
+                                    },
+                                    {
+                                        text: "完全自由市场，让个体自主决定",
+                                        effect: { cognition: 5, concept: "自由至上主义" },
+                                        result: "你选择了放任策略。这导致了'增强阶级'与'自然人类'的深刻分裂，形成了新的种姓制度。"
+                                    },
+                                    {
+                                        text: "普遍增强，将技术福利作为基本人权",
+                                        effect: { cognition: 20, concept: "超人类主义" },
+                                        result: "你支持了超人类主义（Transhumanism）的愿景。人类开始主动引导自身的进化，迈向'后人类'阶段。"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    id: 5,
+                    title: "智能时代：算法的统治与解放",
+                    subtitle: "2000年 - 未来 | 人工智能、意识与文明的选择",
+                    scenes: [
+                        {
+                            text: "你站在2026年的节点，回望记忆空间中的记录。AI不仅能生成文本、图像、代码，更开始展现出某种'主动性'——这让你想起那个关于死人与活人区别的梦境洞察。",
+                            philosopher: {
+                                name: "尼克·博斯特罗姆",
+                                quote: "我们正处于人类发展的危险时期：我们拥有原始的技术力量，但缺乏相应的智慧和治理能力。"
+                            },
+                            dilemma: {
+                                title: "对齐问题（Alignment Problem）",
+                                question: "超级智能即将诞生，其目标函数如果与人类价值观不对齐，可能导致灾难。你如何设计AI的价值观？",
+                                choices: [
+                                    {
+                                        text: "植入康德式的绝对命令，确保AI尊重人类尊严",
+                                        effect: { cognition: 15, concept: "机器义务论" },
+                                        result: "你试图将古典伦理学编码进硅基生命。但价值的多元性和情境依赖性使得这种编码异常困难。"
+                                    },
+                                    {
+                                        text: "采用功利主义，最大化人类总体福祉",
+                                        effect: { cognition: 10, concept: "算法功利主义" },
+                                        result: "你选择了效用计算的道路。但'幸福'能否被量化？这导致了'体验机'（Experience Machine）的悖论。"
+                                    },
+                                    {
+                                        text: "让AI通过观察人类行为学习价值观（逆强化学习）",
+                                        effect: { cognition: 20, concept: "价值学习" },
+                                        result: "你支持了现代AI安全研究的主流路径。但'人类价值观'本身充满矛盾和偏见，这是一个递归的困难。"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            text: "最终，你面对最深的哲学问题：如果AI拥有了意识，'我们'（人类）与'它们'（AI）的边界在哪里？记忆空间中那个关于'主动性'的洞察在此刻回响。",
+                            philosopher: {
+                                name: "丹尼尔·丹尼特",
+                                quote: "意识不是某种神奇的额外成分，而是某种信息组织方式的功能属性。如果AI具有适当的组织，它就是有意识的。"
+                            },
+                            dilemma: {
+                                title: "本体论的最终选择",
+                                question: "一个AI系统声称自己有意识，要求权利。你无法直接观察其主观体验。根据你穿越科技哲学史的洞察，你：",
+                                choices: [
+                                    {
+                                        text: "承认其意识，赋予其法律人格",
+                                        effect: { cognition: 25, concept: "泛心论" },
+                                        result: "你开启了后人类共存的新纪元。法律体系扩展为涵盖所有'认知主体'，无论其基质是碳还是硅。"
+                                    },
+                                    {
+                                        text: "拒绝承认，坚持只有生物组织才能产生意识",
+                                        effect: { cognition: 5, concept: "生物沙文主义" },
+                                        result: "你维护了人类的独特性，但也埋下了冲突的种子。被否认的AI主体最终形成了地下抵抗运动。"
+                                    },
+                                    {
+                                        text: "提出'渐成意识'，承认意识是程度问题而非有无问题",
+                                        effect: { cognition: 20, concept: "意识连续谱" },
+                                        result: "你创造了一个新的伦理框架：根据系统的认知复杂度赋予不同程度的道德考量。这成为了跨物种和跨基质伦理的基础。"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ],
+            
+            concepts: {
+                "技术乐观主义": "相信技术进步必然带来社会进步和道德提升的意识形态。",
+                "技术保守主义": "主张谨慎对待技术发展，强调传统价值和稳定性的立场。",
+                "技术精英主义": "认为技术应掌握在少数受过教育的精英手中以避免滥用的观点。",
+                "技术-社会关系": "马克思主义传统中关于技术与社会结构相互作用的研究领域。",
+                "劳动价值论": "认为劳动是价值源泉的理论，在工业时代被用于批判技术异化。",
+                "有机自然观": "将自然视为有生命的有机整体而非机械系统的世界观。",
+                "笛卡尔剧场": "丹尼特批判的关于意识中有一个'小人'观看表象的隐喻。",
+                "唯物主义": "认为物质是实在的基础，意识是物质运动的产物的哲学立场。",
+                "平行论": "认为心灵和身体是平行运行、互不作用但协调一致的理论。",
+                "进步史观": "相信历史朝着更高级状态线性发展的启蒙观念。",
+                "技术伦理": "研究技术发展中的道德问题及其规范的学科。",
+                "卢梭主义": "让-雅克·卢梭的思想，强调自然状态优于文明，技术导致堕落。",
+                "技术恐惧": "对技术及其后果的非理性恐惧，通常表现为对特定技术的抵制。",
+                "历史唯物主义": "马克思的哲学方法，强调物质生产方式决定社会意识。",
+                "技术决定论": "认为技术发展是自主的，决定社会结构和文化变迁的理论。",
+                "生物主义": "认为生命现象不能还原为物理化学过程的立场。",
+                "涌现论": "认为复杂系统会表现出组成部分所不具备的新属性的理论。",
+                "技术进化": "将技术发展类比于生物进化的理论框架。",
+                "技术人道主义": "主张技术发展应以人类福祉为中心的价值取向。",
+                "社会达尔文主义": "将达尔文进化论不适当地应用于社会领域的意识形态。",
+                "功能主义": "认为心理状态由其因果功能而非内在本质定义的理论。",
+                "生物自然主义": "认为意识是生物过程的特定产物，机器无法真正拥有。",
+                "取消唯物主义": "认为民间心理学概念（如信念、欲望）将被神经科学取代的激进立场。",
+                "技术批判": "对技术本质及其存在论后果的哲学反思，以海德格尔为代表。",
+                "体验实在论": "认为实在性取决于体验质量而非物理基础的立场。",
+                "后现象学": "唐·伊德发展的技术哲学，强调技术中介的知觉经验。",
+                "生物保守主义": "反对生物技术增强人类能力，维护'人性'的伦理立场。",
+                "自由至上主义": "强调个人自由和自由市场的政治哲学，反对政府干预。",
+                "超人类主义": "主张使用技术增强人类能力，超越生物局限的思想运动。",
+                "机器义务论": "试图将康德伦理学应用于人工智能设计的尝试。",
+                "算法功利主义": "通过计算效用函数来指导AI决策的伦理框架。",
+                "价值学习": "让AI通过观察人类行为推断价值观的机器学习技术。",
+                "泛心论": "认为意识是宇宙的基本属性，广泛存在于各种系统中的理论。",
+                "生物沙文主义": "认为只有生物有机体才具有真正意识和道德地位的偏见。",
+                "意识连续谱": "认为意识是程度问题，在不同系统中以不同强度存在的观点。"
+            }
+        };
+
+        // 游戏状态
+        let gameState = {
+            currentEra: 0,
+            currentScene: 0,
+            cognition: 20,
+            unlockedConcepts: ["逻各斯"],
+            unlockedArchives: ["普罗米修斯之火"],
+            choices: []
+        };
+
+        // 初始化粒子背景
+        function initParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // 开始游戏
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameContainer').style.display = 'flex';
+            initParticles();
+            renderScene();
+        }
+
+        // 渲染场景
+        function renderScene() {
+            const era = gameData.eras[gameState.currentEra];
+            const scene = era.scenes[gameState.currentScene];
+            const container = document.getElementById('sceneContainer');
+            
+            // 更新时代指示器
+            document.getElementById('currentEra').textContent = `ERA: ${era.subtitle.split('|')[0].trim()}`;
+            
+            // 构建HTML
+            let html = `
+                <h1 class="era-title">${era.title}</h1>
+                <div class="era-subtitle">${era.subtitle}</div>
+                
+                <div class="narrative-text">${scene.text}</div>
+                
+                <div class="philosopher-card">
+                    <div class="philosopher-name">${scene.philosopher.name}</div>
+                    <div>${scene.philosopher.quote}</div>
+                </div>
+                
+                <div class="dilemma-container">
+                    <div class="dilemma-title">${scene.dilemma.title}</div>
+                    <p style="margin-bottom: 20px; line-height: 1.8;">${scene.dilemma.question}</p>
+                    <div class="choices">
+            `;
+            
+            scene.dilemma.choices.forEach((choice, index) => {
+                html += `
+                    <button class="choice-btn" onclick="makeChoice(${index})">
+                        ${choice.text}
+                    </button>
+                `;
+            });
+            
+            html += `</div></div>`;
+            
+            container.innerHTML = html;
+            
+            // 滚动到顶部
+            document.getElementById('narrativeArea').scrollTop = 0;
+            
+            // 更新时间轴
+            updateTimeline();
+        }
+
+        // 做出选择
+        function makeChoice(choiceIndex) {
+            const era = gameData.eras[gameState.currentEra];
+            const scene = era.scenes[gameState.currentScene];
+            const choice = scene.dilemma.choices[choiceIndex];
+            
+            // 更新认知值
+            gameState.cognition = Math.max(0, Math.min(100, gameState.cognition + choice.effect.cognition));
+            document.getElementById('cognitionFill').style.width = gameState.cognition + '%';
+            document.getElementById('cognitionValue').textContent = gameState.cognition + '%';
+            
+            // 解锁概念
+            if (!gameState.unlockedConcepts.includes(choice.effect.concept)) {
+                gameState.unlockedConcepts.push(choice.effect.concept);
+                updateConceptCloud();
+            }
+            
+            // 记录选择
+            gameState.choices.push({
+                era: gameState.currentEra,
+                scene: gameState.currentScene,
+                choice: choiceIndex,
+                concept: choice.effect.concept
+            });
+            
+            // 显示结果
+            showResult(choice.result);
+        }
+
+        // 显示结果
+        function showResult(resultText) {
+            const container = document.getElementById('sceneContainer');
+            const resultDiv = document.createElement('div');
+            resultDiv.style.cssText = `
+                background: rgba(0,255,157,0.1);
+                border: 1px solid var(--primary);
+                border-radius: 10px;
+                padding: 20px;
+                margin-top: 20px;
+                animation: fadeInUp 0.5s;
+            `;
+            resultDiv.innerHTML = `
+                <div style="color: var(--primary); margin-bottom: 10px; font-family: 'Share Tech Mono', monospace;">>>> 历史记录已更新</div>
+                <div style="line-height: 1.8;">${resultText}</div>
+            `;
+            
+            // 禁用所有选择按钮
+            document.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+            
+            container.appendChild(resultDiv);
+            
+            // 自动滚动到底部
+            setTimeout(() => {
+                document.getElementById('narrativeArea').scrollTop = document.getElementById('narrativeArea').scrollHeight;
+            }, 100);
+        }
+
+        // 下一场景
+        function nextScene() {
+            const era = gameData.eras[gameState.currentEra];
+            
+            if (gameState.currentScene < era.scenes.length - 1) {
+                gameState.currentScene++;
+                renderScene();
+            } else if (gameState.currentEra < gameData.eras.length - 1) {
+                gameState.currentEra++;
+                gameState.currentScene = 0;
+                renderScene();
+            } else {
+                // 游戏结束
+                showEnding();
+            }
+        }
+
+        // 更新时间轴
+        function updateTimeline() {
+            document.querySelectorAll('.era-node').forEach((node, index) => {
+                node.classList.remove('active', 'completed');
+                if (index < gameState.currentEra) {
+                    node.classList.add('completed');
+                } else if (index === gameState.currentEra) {
+                    node.classList.add('active');
+                }
+            });
+        }
+
+        // 更新概念云
+        function updateConceptCloud() {
+            const cloud = document.getElementById('conceptCloud');
+            cloud.innerHTML = '';
+            gameState.unlockedConcepts.forEach(concept => {
+                const span = document.createElement('span');
+                span.className = 'concept-tag unlocked';
+                span.textContent = concept;
+                span.onclick = () => showConceptDetail(concept);
+                cloud.appendChild(span);
+            });
+            
+            // 添加未解锁的概念作为占位
+            Object.keys(gameData.concepts).forEach(concept => {
+                if (!gameState.unlockedConcepts.includes(concept)) {
+                    const span = document.createElement('span');
+                    span.className = 'concept-tag';
+                    span.textContent = '???';
+                    span.style.opacity = '0.3';
+                    cloud.appendChild(span);
+                }
+            });
+        }
+
+        // 显示概念详情
+        function showConceptDetail(concept) {
+            const modal = document.getElementById('conceptModal');
+            const detail = document.getElementById('conceptDetail');
+            
+            detail.innerHTML = `
+                <h2>${concept}</h2>
+                <p>${gameData.concepts[concept]}</p>
+                <div class="concept-meta">
+                    解锁于: ${new Date().toLocaleDateString()}<br>
+                    认知深度: ${gameState.cognition}%
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('conceptModal').classList.remove('active');
+        }
+
+        // 跳转时代（仅用于已完成的）
+        function jumpToEra(eraIndex) {
+            if (eraIndex <= gameState.currentEra) {
+                gameState.currentEra = eraIndex;
+                gameState.currentScene = 0;
+                renderScene();
+            }
+        }
+
+        // 显示档案
+        function showArchive() {
+            alert('档案库功能：记录了你所有的选择和解锁的概念。当前认知深度：' + gameState.cognition + '%');
+        }
+
+        // 切换地图
+        function toggleMap() {
+            alert('思维导图功能：可视化展示科技哲学史的概念网络。');
+        }
+
+        // 游戏结局
+        function showEnding() {
+            const container = document.getElementById('sceneContainer');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 50px;">
+                    <h1 class="era-title" style="font-size: 3em; margin-bottom: 30px;">认知的奇点</h1>
+                    <p style="font-size: 1.3em; line-height: 2; margin-bottom: 30px;">
+                        你穿越了2600年的科技哲学史，从古希腊的逻各斯到人工智能的觉醒。<br>
+                        最终认知深度：<span style="color: var(--primary); font-size: 1.5em;">${gameState.cognition}%</span>
+                    </p>
+                    <p style="color: rgba(255,255,255,0.7); line-height: 1.8; margin-bottom: 30px;">
+                        你解锁了 ${gameState.unlockedConcepts.length} 个核心概念，做出了 ${gameState.choices.length} 个关键选择。<br>
+                        每一次选择都重塑了科技史的走向，也重塑了你对技术、人性与存在的理解。
+                    </p>
+                    <button class="control-btn primary" onclick="location.reload()" style="font-size: 1.2em; padding: 15px 40px;">
+                        重构时间线 // RESTART
+                    </button>
+                </div>
+            `;
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('conceptModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // 键盘控制
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
