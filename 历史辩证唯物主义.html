@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>辩证演进：历史唯物主义之旅</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #eaeaea;
+            overflow-x: hidden;
+        }
+        
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #e94560;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(233, 69, 96, 0.3), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        h1 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2.5em;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            color: #a0a0a0;
+            font-style: italic;
+        }
+        
+        .era-indicator {
+            background: rgba(233, 69, 96, 0.2);
+            border: 1px solid #e94560;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .era-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #e94560;
+        }
+        
+        .progress-bar {
+            width: 200px;
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+        
+        .main-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dialectic-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            position: relative;
+            height: 200px;
+        }
+        
+        .thesis, .antithesis, .synthesis {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: bold;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .thesis {
+            background: radial-gradient(circle at 30% 30%, #4ecdc4, #44a3aa);
+            box-shadow: 0 0 30px rgba(78, 205, 196, 0.4);
+            transform: translateX(-50px);
+        }
+        
+        .antithesis {
+            background: radial-gradient(circle at 30% 30%, #e94560, #c73e54);
+            box-shadow: 0 0 30px rgba(233, 69, 96, 0.4);
+            transform: translateX(50px);
+        }
+        
+        .synthesis {
+            background: radial-gradient(circle at 30% 30%, #ffd93d, #ccaa00);
+            box-shadow: 0 0 40px rgba(255, 217, 61, 0.6);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            z-index: 10;
+        }
+        
+        .synthesis.active {
+            animation: synthesize 1s forwards;
+        }
+        
+        @keyframes synthesize {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2) rotate(180deg); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(360deg); opacity: 1; }
+        }
+        
+        .arrow {
+            font-size: 2em;
+            color: #fff;
+            opacity: 0.5;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+        
+        .concept-label {
+            font-size: 0.9em;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+        
+        .scenario-text {
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #e94560;
+            border-radius: 0 10px 10px 0;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .choices-container {
+            display: grid;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .choice-btn {
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.2), rgba(233, 69, 96, 0.05));
+            border: 2px solid rgba(233, 69, 96, 0.3);
+            color: #eaeaea;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .choice-btn:hover {
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.4), rgba(233, 69, 96, 0.1));
+            border-color: #e94560;
+            transform: translateX(10px);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.3);
+        }
+        
+        .choice-btn::before {
+            content: '▸';
+            position: absolute;
+            left: -20px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            color: #e94560;
+        }
+        
+        .choice-btn:hover::before {
+            left: 10px;
+            opacity: 1;
+        }
+        
+        .choice-btn:hover {
+            padding-left: 40px;
+        }
+        
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #a0a0a0;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        
+        .materialism-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+            position: relative;
+        }
+        
+        .materialism-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560, #ffd93d);
+            transition: width 0.8s ease;
+            position: relative;
+        }
+        
+        .materialism-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            border: 2px solid #e94560;
+            box-shadow: 0 0 50px rgba(233, 69, 96, 0.3);
+            text-align: center;
+            animation: modalAppear 0.5s ease;
+        }
+        
+        @keyframes modalAppear {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .modal h2 {
+            color: #e94560;
+            font-size: 2em;
+            margin-bottom: 20px;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .modal p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #ccc;
+        }
+        
+        .close-btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: #ff6b6b;
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+        }
+        
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0;
+            animation: float 3s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+        
+        .history-log {
+            max-height: 150px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #888;
+        }
+        
+        .history-log div {
+            margin-bottom: 5px;
+            padding-left: 15px;
+            position: relative;
+        }
+        
+        .history-log div::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #e94560;
+        }
+        
+        .conflict-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .conflict-animation.active {
+            animation: conflictBurst 1s ease;
+        }
+        
+        @keyframes conflictBurst {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+        
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8em; }
+            .stats-panel { grid-template-columns: 1fr; }
+            .dialectic-visual { flex-direction: column; height: auto; gap: 20px; }
+            .thesis, .antithesis { transform: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>辩证演进</h1>
+            <div class="subtitle">历史唯物主义原理互动体验</div>
+        </div>
+        
+        <div class="era-indicator">
+            <div class="era-name" id="eraName">原始公社制</div>
+            <div style="text-align: center;">
+                <div style="font-size: 0.9em; margin-bottom: 5px;">历史进程</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.9em; color: #a0a0a0;">第 <span id="stageNumber">1</span> 阶段</div>
+            </div>
+        </div>
+        
+        <div class="stats-panel">
+            <div class="stat-box">
+                <div class="stat-label">生产力水平</div>
+                <div class="stat-value" id="productivity">10</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">生产关系</div>
+                <div class="stat-value" id="relations">原始</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">社会形态</div>
+                <div class="stat-value" id="formation">公社</div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="dialectic-visual" id="dialecticVisual">
+                <div class="thesis" id="thesis">
+                    <div>生产力</div>
+                    <div class="concept-label" id="thesisLabel">石器工具</div>
+                </div>
+                <div class="arrow">⚡</div>
+                <div class="antithesis" id="antithesis">
+                    <div>生产关系</div>
+                    <div class="concept-label" id="antithesisLabel">共同劳动</div>
+                </div>
+                <div class="synthesis" id="synthesis">
+                    <div>合题</div>
+                    <div class="concept-label" id="synthesisLabel">原始社会</div>
+                </div>
+                <div class="conflict-animation" id="conflictAnim">💥</div>
+            </div>
+            
+            <div class="scenario-text" id="scenarioText">
+                在人类文明的开端，生产力极度低下。人们使用简陋的石器工具，必须共同劳动才能生存。生产关系适应生产力的发展水平，形成了原始公社制度。然而，随着新工具的出现...
+            </div>
+            
+            <div class="choices-container" id="choicesContainer">
+                <!-- 动态生成选项 -->
+            </div>
+            
+            <div class="history-log" id="historyLog">
+                <div>📝 历史日志：</div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; color: #666; font-size: 0.9em;">
+            <div>物质基础决定上层建筑 | 矛盾推动历史发展 | 量变引起质变</div>
+            <div style="margin-top: 10px; font-size: 0.8em;">
+                唯物史观指数: 
+                <div class="materialism-meter">
+                    <div class="materialism-fill" id="materialismMeter" style="width: 20%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">标题</h2>
+            <p id="modalText">内容</p>
+            <button class="close-btn" onclick="closeModal()">继续演进</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            stage: 0,
+            era: 0,
+            productivity: 10,
+            relations: '原始',
+            formation: '公社',
+            materialismScore: 20,
+            history: [],
+            choices: []
+        };
+        
+        // 历史阶段数据（基于五种社会形态理论）
+        const eras = [
+            {
+                name: '原始公社制',
+                thesis: '石器工具',
+                antithesis: '共同劳动',
+                synthesis: '原始社会',
+                description: '生产力极度低下，生产资料公有，平均分配产品。没有剥削，没有阶级。',
+                conflict: '金属工具的出现提高了劳动生产率，开始有了剩余产品...',
+                choices: [
+                    { text: '继续使用石器，维持平均分配', effect: '保守', productivity: 0, text2: '生产力停滞，社会缓慢发展' },
+                    { text: '采用金属工具，允许私人占有剩余产品', effect: '进步', productivity: 20, text2: '生产力飞跃，私有制萌芽，原始社会开始解体' }
+                ]
+            },
+            {
+                name: '奴隶制',
+                thesis: '金属工具',
+                antithesis: '奴隶劳动',
+                synthesis: '奴隶社会',
+                description: '第一次社会大分工，生产力发展，出现了剥削阶级和被剥削阶级。脑力劳动与体力劳动分离。',
+                conflict: '铁器的广泛使用使个体生产成为可能，奴隶制成为生产力发展的桎梏...',
+                choices: [
+                    { text: '强化奴隶制，集中大规模生产', effect: '保守', productivity: 5, text2: '奴隶反抗加剧，生产关系阻碍生产力' },
+                    { text: '解放奴隶，改为租佃制', effect: '革命', productivity: 30, text2: '封建生产关系确立，生产力获得新发展空间' }
+                ]
+            },
+            {
+                name: '封建制',
+                thesis: '铁器农具',
+                antithesis: '地主剥削',
+                synthesis: '封建社会',
+                description: '自然经济占主导，地主阶级占有土地，农民依附于土地。行会手工业发展。',
+                conflict: '商品经济发展，手工工场出现，资本主义萌芽在封建制度内生长...',
+                choices: [
+                    { text: '重农抑商，维护封建等级', effect: '保守', productivity: 10, text2: '资本主义萌芽被压制，社会发展缓慢' },
+                    { text: '发展工场手工业，鼓励贸易', effect: '革命', productivity: 40, text2: '资产阶级壮大，革命条件成熟' }
+                ]
+            },
+            {
+                name: '资本主义',
+                thesis: '机器大工业',
+                antithesis: '雇佣劳动',
+                synthesis: '资本主义社会',
+                description: '商品经济高度发达，社会化大生产与生产资料私有制之间的矛盾成为基本矛盾。',
+                conflict: '生产社会化与私有制的矛盾激化，周期性经济危机爆发，无产阶级与资产阶级对立...',
+                choices: [
+                    { text: '国家干预，福利制度缓解矛盾', effect: '改良', productivity: 25, text2: '矛盾暂时缓解，但根本问题未解决' },
+                    { text: '无产阶级革命，建立公有制', effect: '革命', productivity: 50, text2: '社会主义革命胜利，新的社会形态诞生' }
+                ]
+            },
+            {
+                name: '社会主义',
+                thesis: '现代生产力',
+                antithesis: '公有制',
+                synthesis: '共产主义初级阶段',
+                description: '生产资料公有制为主体，按劳分配。生产力高度发展，为共产主义创造条件。',
+                conflict: '旧社会痕迹尚存，三大差别（工农、城乡、脑力体力）需要消灭...',
+                choices: [
+                    { text: '巩固公有制，发展计划经济', effect: '建设', productivity: 30, text2: '社会主义制度巩固，向共产主义过渡' },
+                    { text: '改革开放，发展社会主义市场经济', effect: '创新', productivity: 60, text2: '生产力极大解放，中国特色社会主义道路' }
+                ]
+            }
+        ];
+        
+        // 初始化游戏
+        function initGame() {
+            updateDisplay();
+            showChoices();
+        }
+        
+        // 更新显示
+        function updateDisplay() {
+            const era = eras[gameState.era];
+            document.getElementById('eraName').textContent = era.name;
+            document.getElementById('stageNumber').textContent = gameState.stage + 1;
+            document.getElementById('progressFill').style.width = ((gameState.era + 1) / eras.length * 100) + '%';
+            
+            document.getElementById('productivity').textContent = gameState.productivity;
+            document.getElementById('relations').textContent = gameState.relations;
+            document.getElementById('formation').textContent = gameState.formation;
+            
+            document.getElementById('thesisLabel').textContent = era.thesis;
+            document.getElementById('antithesisLabel').textContent = era.antithesis;
+            document.getElementById('synthesisLabel').textContent = era.synthesis;
+            
+            document.getElementById('materialismMeter').style.width = gameState.materialismScore + '%';
+            
+            // 更新场景文本
+            if (gameState.stage % 2 === 0) {
+                document.getElementById('scenarioText').innerHTML = 
+                    `<strong>【正题阶段】</strong> ${era.description}`;
+            } else {
+                document.getElementById('scenarioText').innerHTML = 
+                    `<strong>【反题冲突】</strong> ${era.conflict}`;
+            }
+        }
+        
+        // 显示选项
+        function showChoices() {
+            const container = document.getElementById('choicesContainer');
+            container.innerHTML = '';
+            
+            const era = eras[gameState.era];
+            const choices = era.choices;
+            
+            choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 5px; color: ${index === 0 ? '#4ecdc4' : '#e94560'};">
+                        ${choice.effect === '保守' || choice.effect === '改良' ? '⬅️' : '➡️'} ${choice.text}
+                    </div>
+                    <div style="font-size: 0.9em; opacity: 0.8;">${choice.text2}</div>
+                `;
+                btn.onclick = () => makeChoice(index);
+                container.appendChild(btn);
+            });
+        }
+        
+        // 做出选择
+        function makeChoice(choiceIndex) {
+            const era = eras[gameState.era];
+            const choice = era.choices[choiceIndex];
+            
+            // 更新状态
+            gameState.productivity += choice.productivity;
+            gameState.materialismScore = Math.min(100, gameState.materialismScore + 10);
+            gameState.history.push(`${era.name}: 选择"${choice.text}" → ${choice.text2}`);
+            updateHistory();
+            
+            // 播放冲突动画
+            if (choiceIndex === 1) { // 革命/进步选择
+                triggerSynthesis();
+            } else {
+                triggerConflict();
+            }
+            
+            // 延迟后进入下一阶段
+            setTimeout(() => {
+                nextStage();
+            }, 1500);
+        }
+        
+        // 触发合题动画
+        function triggerSynthesis() {
+            const synthesis = document.getElementById('synthesis');
+            const conflictAnim = document.getElementById('conflictAnim');
+            
+            synthesis.classList.add('active');
+            conflictAnim.classList.add('active');
+            conflictAnim.textContent = '🔥';
+            
+            createParticles();
+            
+            setTimeout(() => {
+                synthesis.classList.remove('active');
+                conflictAnim.classList.remove('active');
+            }, 1000);
+        }
+        
+        // 触发冲突动画
+        function triggerConflict() {
+            const conflictAnim = document.getElementById('conflictAnim');
+            conflictAnim.textContent = '⚡';
+            conflictAnim.classList.add('active');
+            
+            setTimeout(() => {
+                conflictAnim.classList.remove('active');
+            }, 1000);
+        }
+        
+        // 创建粒子效果
+        function createParticles() {
+            const visual = document.getElementById('dialecticVisual');
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = ['✦', '★', '●', '◆'][Math.floor(Math.random() * 4)];
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.color = ['#e94560', '#ffd93d', '#4ecdc4'][Math.floor(Math.random() * 3)];
+                particle.style.animationDelay = Math.random() * 0.5 + 's';
+                visual.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 3000);
+            }
+        }
+        
+        // 更新历史日志
+        function updateHistory() {
+            const log = document.getElementById('historyLog');
+            log.innerHTML = '<div>📝 历史日志（唯物史观）：</div>';
+            gameState.history.slice(-5).forEach(h => {
+                const div = document.createElement('div');
+                div.textContent = h;
+                log.appendChild(div);
+            });
+        }
+        
+        // 进入下一阶段
+        function nextStage() {
+            gameState.stage++;
+            
+            if (gameState.stage % 2 === 0) {
+                // 进入新的社会形态
+                if (gameState.era < eras.length - 1) {
+                    gameState.era++;
+                    const newEra = eras[gameState.era];
+                    gameState.relations = newEra.antithesis.replace('劳动', '').replace('剥削', '制');
+                    gameState.formation = newEra.synthesis.replace('社会', '').replace('阶段', '');
+                    
+                    showModal(
+                        '社会形态跃迁！',
+                        `生产力与生产关系的矛盾运动推动社会从<strong>${eras[gameState.era-1].name}</strong>发展到<strong>${newEra.name}</strong>。<br><br>
+                        <em>"社会的物质生产力发展到一定阶段，便同它们一直在其中运动的现存生产关系发生矛盾..."</em><br>—— 马克思`
+                    );
+                } else {
+                    // 游戏通关
+                    showModal(
+                        '历史辩证法完成！',
+                        `恭喜你理解了历史唯物主义的核心原理：<br><br>
+                        1. <strong>生产力决定生产关系</strong> - 从石器到机器，工具变革推动社会变革<br>
+                        2. <strong>矛盾是发展的动力</strong> - 社会基本矛盾运动推动历史前进<br>
+                        3. <strong>量变引起质变</strong> - 社会形态的更替是渐进过程的中断<br>
+                        4. <strong>历史发展的规律性</strong> - 人类社会从低级向高级发展<br><br>
+                        最终生产力水平: ${gameState.productivity}<br>
+                        唯物史观掌握度: ${gameState.materialismScore}%`
+                    );
+                    return;
+                }
+            }
+            
+            updateDisplay();
+            showChoices();
+        }
+        
+        // 显示模态框
+        function showModal(title, text) {
+            document.getElementById('modalTitle').innerHTML = title;
+            document.getElementById('modalText').innerHTML = text;
+            document.getElementById('modal').style.display = 'flex';
+        }
+        
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            if (gameState.era === eras.length - 1 && gameState.stage % 2 === 0) {
+                // 重新开始
+                location.reload();
+            }
+        }
+        
+        // 启动游戏
+        window.onload = initGame;
+    </script>
+</body>
+</html>
