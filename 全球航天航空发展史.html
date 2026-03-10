@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星际征程：航天发展史</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #0a0e27 0%, #1a1f4b 50%, #2d1b69 100%);
+        }
+        
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: auto;
+        }
+        
+        .stat-box {
+            background: rgba(0, 20, 40, 0.8);
+            border: 2px solid #00d4ff;
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 150px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-box h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: #00d4ff;
+            font-size: 12px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .era-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 50, 100, 0.9);
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 3px;
+            box-shadow: 0 0 30px rgba(255, 50, 100, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+        }
+        
+        .control-panel {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            pointer-events: auto;
+        }
+        
+        .control-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+        }
+        
+        .control-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .control-btn.danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            border: 3px solid #00d4ff;
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.5);
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.5s;
+        }
+        
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+        }
+        
+        .modal p {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            color: #e0e0e0;
+        }
+        
+        .modal .year {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            color: #ff3264;
+            margin: 20px 0;
+            text-shadow: 0 0 30px rgba(255, 50, 100, 0.8);
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            border: none;
+            color: white;
+            padding: 20px 50px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.8);
+        }
+        
+        .progress-bar {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #ff3264);
+            width: 0%;
+            transition: width 0.5s;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+        }
+        
+        .milestone-marker {
+            position: absolute;
+            top: -15px;
+            width: 4px;
+            height: 40px;
+            background: #fff;
+            transform: translateX(-50%);
+        }
+        
+        .milestone-label {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            color: #00d4ff;
+            white-space: nowrap;
+        }
+        
+        .notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #ffd700;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            z-index: 500;
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+        
+        .notification h3 {
+            color: #ffd700;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .tech-tree {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 20, 40, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #00d4ff;
+            max-width: 250px;
+        }
+        
+        .tech-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+        
+        .tech-item.unlocked {
+            opacity: 1;
+        }
+        
+        .tech-icon {
+            width: 40px;
+            height: 40px;
+            background: #00d4ff;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="ui-layer">
+        <div class="hud">
+            <div class="stat-box">
+                <h3>高度</h3>
+                <div class="stat-value" id="altitude">0 km</div>
+            </div>
+            <div class="stat-box">
+                <h3>速度</h3>
+                <div class="stat-value" id="velocity">0 km/h</div>
+            </div>
+            <div class="stat-box">
+                <h3>燃料</h3>
+                <div class="stat-value" id="fuel">100%</div>
+            </div>
+        </div>
+        
+        <div class="era-indicator" id="era">早期火箭时代 (1957前)</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="milestone-marker" style="left: 10%">
+                <div class="milestone-label">斯普特尼克</div>
+            </div>
+            <div class="milestone-marker" style="left: 25%">
+                <div class="milestone-label">加加林</div>
+            </div>
+            <div class="milestone-marker" style="left: 40%">
+                <div class="milestone-label">阿波罗11</div>
+            </div>
+            <div class="milestone-marker" style="left: 60%">
+                <div class="milestone-label">空间站</div>
+            </div>
+            <div class="milestone-marker" style="left: 80%">
+                <div class="milestone-label">航天飞机</div>
+            </div>
+            <div class="milestone-marker" style="left: 100%">
+                <div class="milestone-label">火星</div>
+            </div>
+        </div>
+        
+        <div class="tech-tree" id="techTree">
+            <h3 style="color: #00d4ff; margin-bottom: 15px; font-family: 'Orbitron', sans-serif;">技术解锁</h3>
+            <div class="tech-item unlocked" id="tech1">
+                <div class="tech-icon">🚀</div>
+                <div>
+                    <div style="font-weight: bold;">V-2火箭</div>
+                    <div style="font-size: 12px; color: #aaa;">1944</div>
+                </div>
+            </div>
+            <div class="tech-item" id="tech2">
+                <div class="tech-icon">🛰️</div>
+                <div>
+                    <div style="font-weight: bold;">人造卫星</div>
+                    <div style="font-size: 12px; color: #aaa;">1957</div>
+                </div>
+            </div>
+            <div class="tech-item" id="tech3">
+                <div class="tech-icon">👨‍🚀</div>
+                <div>
+                    <div style="font-weight: bold;">载人航天</div>
+                    <div style="font-size: 12px; color: #aaa;">1961</div>
+                </div>
+            </div>
+            <div class="tech-item" id="tech4">
+                <div class="tech-icon">🌙</div>
+                <div>
+                    <div style="font-weight: bold;">登月计划</div>
+                    <div style="font-size: 12px; color: #aaa;">1969</div>
+                </div>
+            </div>
+            <div class="tech-item" id="tech5">
+                <div class="tech-icon">🛸</div>
+                <div>
+                    <div style="font-weight: bold;">航天飞机</div>
+                    <div style="font-size: 12px; color: #aaa;">1981</div>
+                </div>
+            </div>
+            <div class="tech-item" id="tech6">
+                <div class="tech-icon">🔴</div>
+                <div>
+                    <div style="font-weight: bold;">火星殖民</div>
+                    <div style="font-size: 12px; color: #aaa;">未来</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <button class="control-btn" id="launchBtn" onclick="game.launch()">发射火箭</button>
+            <button class="control-btn danger" id="resetBtn" onclick="game.reset()">重置任务</button>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <h3>历史里程碑!</h3>
+        <p id="notificationText">你达到了新的高度！</p>
+    </div>
+    
+    <div class="modal active" id="startModal">
+        <div class="modal-content">
+            <h2>🚀 星际征程</h2>
+            <p>穿越航天发展史，从V-2火箭到火星殖民</p>
+            <div class="year">1944 - 未来</div>
+            <p>体验人类航天史上的每一个重大突破<br>
+            收集历史数据，解锁技术节点<br>
+            最终目标是建立火星殖民地</p>
+            <button class="start-btn" onclick="game.start()">开始任务</button>
+        </div>
+    </div>
+
+    <script>
+        class SpaceGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                
+                this.state = 'ready'; // ready, flying, landed, crashed
+                this.rocket = {
+                    x: this.canvas.width / 2,
+                    y: this.canvas.height - 150,
+                    vx: 0,
+                    vy: 0,
+                    angle: 0,
+                    fuel: 100,
+                    altitude: 0,
+                    velocity: 0,
+                    maxVelocity: 0
+                };
+                
+                this.stars = [];
+                this.particles = [];
+                this.obstacles = [];
+                this.collectibles = [];
+                
+                this.eras = [
+                    { name: "早期火箭时代", year: "1944-1957", color: "#ff6b6b", threshold: 0 },
+                    { name: "太空竞赛开始", year: "1957-1961", color: "#4ecdc4", threshold: 100 },
+                    { name: "载人航天时代", year: "1961-1969", color: "#45b7d1", threshold: 300 },
+                    { name: "阿波罗计划", year: "1969-1981", color: "#f9ca24", threshold: 600 },
+                    { name: "空间站时代", year: "1981-2011", color: "#6c5ce7", threshold: 1000 },
+                    { name: "深空探索", year: "2011-未来", color: "#a29bfe", threshold: 1500 },
+                    { name: "火星殖民", year: "未来", color: "#fd79a8", threshold: 2500 }
+                ];
+                
+                this.currentEra = 0;
+                this.score = 0;
+                this.historyFacts = [];
+                
+                this.initStars();
+                this.bindEvents();
+                this.loop();
+            }
+            
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+            
+            initStars() {
+                for (let i = 0; i < 200; i++) {
+                    this.stars.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        size: Math.random() * 2,
+                        speed: Math.random() * 0.5 + 0.1,
+                        brightness: Math.random()
+                    });
+                }
+            }
+            
+            bindEvents() {
+                window.addEventListener('resize', () => this.resize());
+                
+                this.canvas.addEventListener('mousemove', (e) => {
+                    if (this.state === 'flying') {
+                        const rect = this.canvas.getBoundingClientRect();
+                        const mouseX = e.clientX - rect.left;
+                        this.rocket.targetX = mouseX;
+                    }
+                });
+                
+                this.canvas.addEventListener('touchmove', (e) => {
+                    if (this.state === 'flying') {
+                        e.preventDefault();
+                        const rect = this.canvas.getBoundingClientRect();
+                        const touch = e.touches[0];
+                        this.rocket.targetX = touch.clientX - rect.left;
+                    }
+                });
+            }
+            
+            start() {
+                document.getElementById('startModal').classList.remove('active');
+                this.reset();
+            }
+            
+            launch() {
+                if (this.state === 'ready') {
+                    this.state = 'flying';
+                    this.rocket.vy = 5;
+                    document.getElementById('launchBtn').textContent = '推进中...';
+                    this.generateObstacles();
+                    this.generateCollectibles();
+                }
+            }
+            
+            reset() {
+                this.state = 'ready';
+                this.rocket.y = this.canvas.height - 150;
+                this.rocket.vx = 0;
+                this.rocket.vy = 0;
+                this.rocket.fuel = 100;
+                this.rocket.altitude = 0;
+                this.rocket.velocity = 0;
+                this.rocket.angle = 0;
+                this.score = 0;
+                this.currentEra = 0;
+                this.obstacles = [];
+                this.collectibles = [];
+                this.particles = [];
+                
+                document.getElementById('launchBtn').textContent = '发射火箭';
+                document.getElementById('altitude').textContent = '0 km';
+                document.getElementById('velocity').textContent = '0 km/h';
+                document.getElementById('fuel').textContent = '100%';
+                document.getElementById('progressFill').style.width = '0%';
+                document.getElementById('era').textContent = this.eras[0].name + ' (' + this.eras[0].year + ')';
+                document.getElementById('era').style.background = this.eras[0].color;
+                
+                // Reset tech tree
+                for (let i = 2; i <= 6; i++) {
+                    document.getElementById('tech' + i).classList.remove('unlocked');
+                }
+            }
+            
+            generateObstacles() {
+                const types = ['bird', 'cloud', 'satellite', 'asteroid', 'debris'];
+                const eraType = Math.min(this.currentEra, types.length - 1);
+                
+                for (let i = 0; i < 5; i++) {
+                    this.obstacles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: this.rocket.y - 500 - Math.random() * 1000,
+                        width: 40,
+                        height: 40,
+                        type: types[Math.floor(Math.random() * (eraType + 1))],
+                        speedX: (Math.random() - 0.5) * 2
+                    });
+                }
+            }
+            
+            generateCollectibles() {
+                const facts = [
+                    { text: "1944: V-2火箭成为首个进入太空的人造物体", year: 1944 },
+                    { text: "1957: 斯普特尼克1号开启太空时代", year: 1957 },
+                    { text: "1961: 加加林成为首位进入太空的人类", year: 1961 },
+                    { text: "1969: 阿姆斯特朗踏上月球表面", year: 1969 },
+                    { text: "1971: 礼炮1号成为首个空间站", year: 1971 },
+                    { text: "1981: 哥伦比亚号航天飞机首飞", year: 1981 },
+                    { text: "1990: 哈勃望远镜改变我们对宇宙的认知", year: 1990 },
+                    { text: "1998: 国际空间站开始建设", year: 1998 },
+                    { text: "2012: 好奇号着陆火星", year: 2012 },
+                    { text: "2021: 詹姆斯·韦伯望远镜发射", year: 2021 }
+                ];
+                
+                for (let i = 0; i < 3; i++) {
+                    const fact = facts[Math.floor(Math.random() * facts.length)];
+                    this.collectibles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: this.rocket.y - 400 - Math.random() * 800,
+                        radius: 15,
+                        fact: fact,
+                        collected: false
+                    });
+                }
+            }
+            
+            update() {
+                // Update stars
+                this.stars.forEach(star => {
+                    star.y += star.speed;
+                    if (star.y > this.canvas.height) {
+                        star.y = 0;
+                        star.x = Math.random() * this.canvas.width;
+                    }
+                });
+                
+                if (this.state === 'flying') {
+                    // Rocket physics
+                    if (this.rocket.targetX !== undefined) {
+                        const dx = this.rocket.targetX - this.rocket.x;
+                        this.rocket.vx = dx * 0.05;
+                    }
+                    
+                    this.rocket.x += this.rocket.vx;
+                    this.rocket.vy += 0.1; // Gravity
+                    this.rocket.y -= this.rocket.vy;
+                    
+                    // Fuel consumption
+                    this.rocket.fuel -= 0.1;
+                    if (this.rocket.fuel <= 0) {
+                        this.rocket.fuel = 0;
+                        this.state = 'crashed';
+                        this.showNotification('燃料耗尽！任务失败');
+                    }
+                    
+                    // Update altitude
+                    this.rocket.altitude = Math.max(0, Math.floor((this.canvas.height - 150 - this.rocket.y) / 10));
+                    this.rocket.velocity = Math.floor(this.rocket.vy * 100);
+                    
+                    // Check era progression
+                    this.checkEraProgression();
+                    
+                    // Generate more content
+                    if (this.rocket.y < this.canvas.height - 2000) {
+                        if (Math.random() < 0.02) this.generateObstacles();
+                        if (Math.random() < 0.01) this.generateCollectibles();
+                    }
+                    
+                    // Update obstacles
+                    this.obstacles.forEach((obs, index) => {
+                        obs.x += obs.speedX;
+                        if (obs.x < 0 || obs.x > this.canvas.width) obs.speedX *= -1;
+                        
+                        // Collision detection
+                        const dx = this.rocket.x - obs.x;
+                        const dy = this.rocket.y - obs.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 30) {
+                            this.rocket.fuel -= 20;
+                            this.createExplosion(obs.x, obs.y);
+                            this.obstacles.splice(index, 1);
+                            this.showNotification('碰撞！燃料损失');
+                        }
+                    });
+                    
+                    // Update collectibles
+                    this.collectibles.forEach((col, index) => {
+                        if (!col.collected) {
+                            const dx = this.rocket.x - col.x;
+                            const dy = this.rocket.y - col.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (distance < 30) {
+                                col.collected = true;
+                                this.score += 100;
+                                this.rocket.fuel = Math.min(100, this.rocket.fuel + 10);
+                                this.showNotification(col.fact.text);
+                                this.collectibles.splice(index, 1);
+                            }
+                        }
+                    });
+                    
+                    // Win condition
+                    if (this.rocket.altitude >= 3000) {
+                        this.state = 'landed';
+                        this.showNotification('恭喜！你到达了火星！');
+                    }
+                    
+                    // Update UI
+                    document.getElementById('altitude').textContent = this.rocket.altitude + ' km';
+                    document.getElementById('velocity').textContent = this.rocket.velocity + ' km/h';
+                    document.getElementById('fuel').textContent = Math.floor(this.rocket.fuel) + '%';
+                    document.getElementById('progressFill').style.width = Math.min(100, (this.rocket.altitude / 3000) * 100) + '%';
+                }
+                
+                // Update particles
+                this.particles = this.particles.filter(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 0.02;
+                    return p.life > 0;
+                });
+            }
+            
+            checkEraProgression() {
+                let newEra = this.currentEra;
+                for (let i = this.eras.length - 1; i >= 0; i--) {
+                    if (this.rocket.altitude >= this.eras[i].threshold) {
+                        newEra = i;
+                        break;
+                    }
+                }
+                
+                if (newEra !== this.currentEra) {
+                    this.currentEra = newEra;
+                    const era = this.eras[this.currentEra];
+                    document.getElementById('era').textContent = era.name + ' (' + era.year + ')';
+                    document.getElementById('era').style.background = era.color;
+                    
+                    // Unlock tech tree
+                    if (this.currentEra > 0) {
+                        document.getElementById('tech' + (this.currentEra + 1)).classList.add('unlocked');
+                    }
+                    
+                    this.showNotification('进入新时代: ' + era.name);
+                }
+            }
+            
+            createExplosion(x, y) {
+                for (let i = 0; i < 20; i++) {
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: (Math.random() - 0.5) * 10,
+                        life: 1,
+                        color: '#ff6b6b',
+                        size: Math.random() * 5 + 2
+                    });
+                }
+            }
+            
+            showNotification(text) {
+                const notif = document.getElementById('notification');
+                document.getElementById('notificationText').textContent = text;
+                notif.classList.add('show');
+                setTimeout(() => notif.classList.remove('show'), 3000);
+            }
+            
+            draw() {
+                // Clear canvas
+                this.ctx.fillStyle = 'rgba(10, 14, 39, 0.3)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw stars
+                this.stars.forEach(star => {
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                
+                // Draw particles
+                this.particles.forEach(p => {
+                    this.ctx.fillStyle = `rgba(255, 100, 100, ${p.life})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                
+                // Draw obstacles
+                this.obstacles.forEach(obs => {
+                    this.ctx.save();
+                    this.ctx.translate(obs.x, obs.y);
+                    
+                    if (obs.type === 'bird') {
+                        this.ctx.fillStyle = '#fff';
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(-10, 0);
+                        this.ctx.lineTo(0, -5);
+                        this.ctx.lineTo(10, 0);
+                        this.ctx.lineTo(0, 5);
+                        this.ctx.fill();
+                    } else if (obs.type === 'satellite') {
+                        this.ctx.fillStyle = '#silver';
+                        this.ctx.fillRect(-15, -5, 30, 10);
+                        this.ctx.fillStyle = '#00d4ff';
+                        this.ctx.fillRect(-20, -15, 5, 30);
+                        this.ctx.fillRect(15, -15, 5, 30);
+                    } else {
+                        this.ctx.fillStyle = '#666';
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                    
+                    this.ctx.restore();
+                });
+                
+                // Draw collectibles
+                this.collectibles.forEach(col => {
+                    if (!col.collected) {
+                        this.ctx.save();
+                        this.ctx.translate(col.x, col.y);
+                        
+                        // Glow effect
+                        const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+                        gradient.addColorStop(0, 'rgba(255, 215, 0, 1)');
+                        gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+                        this.ctx.fillStyle = gradient;
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 0, 20, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        
+                        this.ctx.fillStyle = '#ffd700';
+                        this.ctx.font = '20px Arial';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.fillText('★', 0, 7);
+                        
+                        this.ctx.restore();
+                    }
+                });
+                
+                // Draw rocket
+                this.ctx.save();
+                this.ctx.translate(this.rocket.x, this.rocket.y);
+                
+                // Rocket body
+                const gradient = this.ctx.createLinearGradient(-15, 0, 15, 0);
+                gradient.addColorStop(0, '#e74c3c');
+                gradient.addColorStop(0.5, '#c0392b');
+                gradient.addColorStop(1, '#e74c3c');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, -30);
+                this.ctx.lineTo(-12, 20);
+                this.ctx.lineTo(-8, 25);
+                this.ctx.lineTo(0, 20);
+                this.ctx.lineTo(8, 25);
+                this.ctx.lineTo(12, 20);
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                // Window
+                this.ctx.fillStyle = '#3498db';
+                this.ctx.beginPath();
+                this.ctx.arc(0, -5, 6, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.fillStyle = '#87ceeb';
+                this.ctx.beginPath();
+                this.ctx.arc(-2, -7, 2, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Flame
+                if (this.state === 'flying') {
+                    this.ctx.fillStyle = '#f39c12';
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(-8, 25);
+                    this.ctx.lineTo(0, 45 + Math.random() * 10);
+                    this.ctx.lineTo(8, 25);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    
+                    this.ctx.fillStyle = '#e74c3c';
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(-5, 25);
+                    this.ctx.lineTo(0, 35 + Math.random() * 5);
+                    this.ctx.lineTo(5, 25);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                }
+                
+                this.ctx.restore();
+                
+                // Draw ground if near start
+                if (this.rocket.y > this.canvas.height - 200) {
+                    this.ctx.fillStyle = '#2c3e50';
+                    this.ctx.fillRect(0, this.canvas.height - 50, this.canvas.width, 50);
+                    
+                    // Launch pad
+                    this.ctx.fillStyle = '#7f8c8d';
+                    this.ctx.fillRect(this.canvas.width/2 - 40, this.canvas.height - 70, 80, 20);
+                }
+            }
+            
+            loop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.loop());
+            }
+        }
+        
+        const game = new SpaceGame();
+    </script>
+</body>
+</html>
